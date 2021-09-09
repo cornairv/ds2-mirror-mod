@@ -3,22 +3,26 @@
 #include "d3d11.h"
 #include "xinput.h"
 #include "fmod.h"
-//#include "render_manager.h"
+#include "render_manager.h"
 #include "input_manager.h"
 #include "addresses.h"
 #include "logger.h"
+#include "util.h"
 #include <detours/detours.h>
 
 #define ATTACH_HOOK(name) CHECK(DetourAttach(&(PVOID&)o##name, hk##name))
 
 void setupHooks()
 {
+	// patch executable hash check (crashes game if hash mismatches)
+	PatchCmp(hashCheckCmp);
+
 	CHECK(DetourTransactionBegin());
 	CHECK(DetourUpdateThread(GetCurrentThread()));
 
 	// rendering
 	ATTACH_HOOK(D3D11CreateDevice);
-	//ATTACH_HOOK(RenderPostProcess);
+	ATTACH_HOOK(RenderPostProcess);
 	//ATTACH_HOOK(SetLockonRect);
 	//ATTACH_HOOK(SetEnemyRect);
 	//ATTACH_HOOK(SetPhantomRect);

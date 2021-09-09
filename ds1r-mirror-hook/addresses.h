@@ -8,7 +8,7 @@ extern tSetFloatingRect oSetLockonRect;
 extern tSetFloatingRect oSetEnemyRect;
 extern tSetFloatingRect oSetPhantomRect;
 
-typedef void(__thiscall* tRenderPostProcess)(void*, void*, void*);
+typedef void(*tRenderPostProcess)(void*, void*, void*);
 extern tRenderPostProcess oRenderPostProcess;
 
 
@@ -33,3 +33,6 @@ extern byte** pGameDataManager;
 typedef int(__stdcall* tEventSystem_Create)(void**);
 extern tEventSystem_Create oEventSystem_Create;
 
+
+// misc
+extern byte* hashCheckCmp;

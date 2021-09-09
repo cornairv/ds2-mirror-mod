@@ -2,46 +2,43 @@
 
 #include <fstream>
 #include <sstream>
-#include <INIReader.h>
+#include <mutex>
+#include <memory>
 
 enum class LogEndl { INFO, ERRO, WARN, ENDL };
 
 class Logger
 {
-public:
-	static Logger& getInstance()
+private:
+	class SyncLogger
 	{
-		static Logger singleton;
-		return singleton;
-	}
-	Logger(Logger const&) = delete;
-	void operator=(Logger const&) = delete;
+	public:
+		SyncLogger();
+		~SyncLogger();
+		void log(std::string str);
+		std::ofstream logOut;
+		std::mutex mutex;
+	};
+	SyncLogger& sync;
 
-	Logger();
-	~Logger();
-
-	template <typename T>
-	friend Logger& operator<< (Logger& logger, const T& x);
-	friend Logger& operator<< (Logger& logger, LogEndl s);
+public:
+	static Logger getInstance();
 
 	static bool enabled;
 
-private:
-	void clearBuffer();
+	template <typename T>
+	Logger& operator<< (const T& x)
+	{
+		sstream << x;
+		return *this;
+	}
+	Logger& operator<< (LogEndl s);
 
-	std::ofstream logOut;
+private:
+	Logger(Logger::SyncLogger& sync) : sync(sync) {}
 	std::stringstream sstream;
 	std::stringstream prefixSstream;
-
-	void flush();
 };
-
-template <typename T>
-Logger& operator<< (Logger& logger, const T& x)
-{
-	logger.sstream << x;
-	return logger;
-}
 
 void MyDebugBreak();
 

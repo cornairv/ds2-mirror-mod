@@ -5,7 +5,7 @@
 
 bool Logger::enabled = false;
 
-Logger::Logger()
+Logger::SyncLogger::SyncLogger()
 {
 	if (!config.logFile.empty())
 	{
@@ -26,7 +26,7 @@ Logger::Logger()
 	}
 }
 
-Logger::~Logger()
+Logger::SyncLogger::~SyncLogger()
 {
 	if (logOut.is_open())
 	{
@@ -35,50 +35,48 @@ Logger::~Logger()
 	}
 }
 
-Logger& operator<< (Logger& logger, LogEndl s)
+void Logger::SyncLogger::log(std::string str)
+{
+	std::lock_guard<std::mutex> lock(mutex);
+	logOut << str;
+	logOut.flush();
+	if (config.showConsole)
+	{
+		WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), str.c_str(), static_cast<DWORD>(str.length()), nullptr, nullptr);
+	}
+}
+
+Logger Logger::getInstance()
+{
+	static Logger::SyncLogger syncInstance;
+	return Logger(syncInstance);
+}
+
+Logger& Logger::operator<< (LogEndl s)
 {
 	time_t now = std::time(nullptr);
 	struct tm timebuf;
 	localtime_s(&timebuf, &now);
-	logger.prefixSstream << std::put_time(&timebuf, "%F %T ");
+	prefixSstream << std::put_time(&timebuf, "%F %T ");
 
 	switch (s)
 	{
 	case LogEndl::INFO:
-		logger.prefixSstream << "[INFO] ";
+		prefixSstream << "[INFO] ";
 		break;
 	case LogEndl::ERRO:
-		MessageBoxA(nullptr, logger.sstream.str().c_str(), "DSMirror Error", MB_OK);
-		logger.prefixSstream << "[ERRO] ";
+		MessageBoxA(nullptr, sstream.str().c_str(), "DSMirror Error", MB_OK);
+		prefixSstream << "[ERRO] ";
 		break;
 	case LogEndl::WARN:
-		logger.prefixSstream << "[WARN] ";
+		prefixSstream << "[WARN] ";
 		break;
 	case LogEndl::ENDL:
 		break;
 	}
-	logger.flush();
-	return logger;
-}
-
-void Logger::flush()
-{
 	prefixSstream << sstream.str() << "\n";
-	logOut << prefixSstream.str();
-	logOut.flush();
-	if (config.showConsole)
-	{
-		WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), prefixSstream.str().c_str(), static_cast<DWORD>(prefixSstream.str().length()), nullptr, nullptr);
-	}
-	clearBuffer();
-}
-
-void Logger::clearBuffer()
-{
-	prefixSstream.clear();
-	prefixSstream.str(std::string());
-	sstream.clear();
-	sstream.str(std::string());
+	sync.log(prefixSstream.str());
+	return *this;
 }
 
 void __declspec(noinline) MyDebugBreak()

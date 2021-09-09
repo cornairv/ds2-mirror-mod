@@ -1,8 +1,8 @@
 #pragma once
 
-#include "d3d9dev.h"
 #include <memory>
-#include <d3dx9.h>
+#include <d3d11.h>
+#include <d3dcompiler.h>
 
 class RenderManager
 {
@@ -18,7 +18,6 @@ public:
 
 	RenderManager() { }
 
-	void setD3dDevice(hkIDirect3DDevice9* hkD3dDev);
 	void reset();
 
 	void mirrorRectPosition(void* __this);
@@ -30,29 +29,10 @@ private:
 	{
 		float x, y, z, u, v;
 	} ScreenQuadVertex;
+	ID3D11VertexShader* getMirrorVertexShader();
+	ID3D11PixelShader* getMirrorPixelShader();
 	ScreenQuadVertex* getScreenQuad();
-	IDirect3DVertexDeclaration9* getScreenQuadVertexDeclaration();
-	IDirect3DTexture9* getFlipTexture();
-	IDirect3DSurface9* getFlipSurface();
-	LPD3DXEFFECT getFlipEffect();
-	IDirect3DStateBlock9* getFlipStateBlock();
-
-	IDirect3DSurface9* flipSurface = nullptr;
-	IDirect3DTexture9* flipTexture = nullptr;
-	LPD3DXEFFECT flipEffect = nullptr;
-	IDirect3DStateBlock9* flipStateBlock = nullptr;
-	IDirect3DVertexDeclaration9* screenQuadVertexDeclaration = nullptr;
 	std::unique_ptr<ScreenQuadVertex*> screenQuad = nullptr;
-	const D3DVERTEXELEMENT9 screenQuadVertexElements[3] = {
-		{ 0, 0,  D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-		{ 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  0 },
-		D3DDECL_END()
-	};
-
-	hkIDirect3DDevice9* hkD3dDev = nullptr;
 };
 
-void __fastcall hkSetLockonRect(void* __this, int __ecx, float unk);
-void __fastcall hkSetEnemyRect(void* __this, int __ecx, float unk);
-void __fastcall hkSetPhantomRect(void* __this, int __ecx, float unk);
-void __fastcall hkRenderPostProcess(void* __this, int __edx, void* unk1, void* unk2);
+void hkRenderPostProcess(void* __this, void* unk1, void* unk2);

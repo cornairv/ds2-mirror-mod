@@ -3,7 +3,7 @@
 #include <d3d11.h>
 #include "d3d11ctxt.h"
 
-interface hkID3D11Device : public ID3D11Device
+class hkID3D11Device : public ID3D11Device
 {
 private:
     ID3D11Device* d3d11Dev;

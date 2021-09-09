@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "d3d11ctxt.h"
+#include "d3d11dev.h"
 #include "logger.h"
 
-#define LOG_FUNCTION LOG << std::hex << this << " Called function: " << __FUNCTION__ << LogEndl::INFO;
+#define LOG_FUNCTION //LOG << std::hex << this << " Called function: " << __FUNCTION__ << LogEndl::INFO;
 
 HRESULT hkID3D11DeviceContext::QueryInterface(REFIID riid, void** ppvObj)
 {
@@ -17,7 +18,12 @@ ULONG hkID3D11DeviceContext::AddRef()
 ULONG hkID3D11DeviceContext::Release()
 {
     LOG_FUNCTION;
-    return d3d11Ctxt->Release();
+    ULONG refs = d3d11Ctxt->Release();
+    if (refs == 0)
+    {
+        delete this;
+    }
+    return refs;
 }
 void STDMETHODCALLTYPE hkID3D11DeviceContext::GetDevice(ID3D11Device** ppDevice)
 {
@@ -173,6 +179,32 @@ void STDMETHODCALLTYPE hkID3D11DeviceContext::GSSetSamplers(UINT StartSlot, UINT
 void STDMETHODCALLTYPE hkID3D11DeviceContext::OMSetRenderTargets(UINT NumViews, ID3D11RenderTargetView* const* ppRenderTargetViews, ID3D11DepthStencilView* pDepthStencilView)
 {
     LOG_FUNCTION;
+    /*
+    auto log = Logger::getInstance();
+    log << __FUNCTION__ << ": " << NumViews << "\n";
+    if (ppRenderTargetViews)
+    {
+        for (UINT i = 0; i < NumViews; i++)
+        {
+            if (ppRenderTargetViews[i])
+            {
+                D3D11_RENDER_TARGET_VIEW_DESC desc;
+                ppRenderTargetViews[i]->GetDesc(&desc);
+                log << i << ": Type: " << desc.ViewDimension << "; Format: " << desc.Format << "\n";
+                DXGI_FORMAT
+            }
+        }
+
+    }
+    log << LogEndl::INFO;
+    if (NumViews && ppRenderTargetViews && ppRenderTargetViews[0])
+    {
+        ID3D11Resource* resource;
+        ppRenderTargetViews[0]->GetResource(&resource);
+        LOG << __FUNCTION__ << ": " << std::hex << resource << LogEndl::INFO;
+
+    }
+    */
     d3d11Ctxt->OMSetRenderTargets(NumViews, ppRenderTargetViews, pDepthStencilView);
 }
 void STDMETHODCALLTYPE hkID3D11DeviceContext::OMSetRenderTargetsAndUnorderedAccessViews(UINT NumRTVs, ID3D11RenderTargetView* const* ppRenderTargetViews, ID3D11DepthStencilView* pDepthStencilView, UINT UAVStartSlot, UINT NumUAVs, ID3D11UnorderedAccessView* const* ppUnorderedAccessViews, const UINT* pUAVInitialCounts)

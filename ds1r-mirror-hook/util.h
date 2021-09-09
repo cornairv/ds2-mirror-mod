@@ -30,3 +30,8 @@ void safeNegate(T& n)
 }
 
 char my_tolower(char ch);
+
+// memory operations
+
+void PatchCmp(void* InstrAddr);
+void PatchMem(void* instrAddr, void* data, int size);

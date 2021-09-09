@@ -30,7 +30,7 @@ bool MyINIReader::GetString(const std::string& section, const std::string& name,
     if (it == values.end())
     {
         error = "[" + section + "] " + name + ": key not found; using default";
-        return true;
+        return false;
     }
     else
     {

@@ -20,7 +20,6 @@ HRESULT WINAPI hkD3D11CreateDevice(
     ID3D11DeviceContext *d3d11Ctxt;
     HRESULT ret = oD3D11CreateDevice(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, &d3d11Dev, pFeatureLevel, &d3d11Ctxt);
     
-    /*
     LOG << "pAdapter: " << std::hex << pAdapter
         << "\nDriverType: " << DriverType
         << "\nSoftware: " << Software
@@ -32,7 +31,6 @@ HRESULT WINAPI hkD3D11CreateDevice(
         << "\npFeatureLevel: " << pFeatureLevel
         << "\nppImmediateContext: " << ppImmediateContext
         << LogEndl::INFO;
-    */
 
     if (ret == 0)
     {

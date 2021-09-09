@@ -2,7 +2,7 @@
 #include "d3d11dev.h"
 #include "logger.h"
 
-#define LOG_FUNCTION LOG << std::hex << this << " Called function: " << __FUNCTION__ << LogEndl::INFO;
+#define LOG_FUNCTION //LOG << std::hex << this << " Called function: " << __FUNCTION__ << LogEndl::INFO;
 
 HRESULT hkID3D11Device::QueryInterface(REFIID riid, void** ppvObj)
 {
@@ -17,7 +17,12 @@ ULONG hkID3D11Device::AddRef()
 ULONG hkID3D11Device::Release()
 {
     LOG_FUNCTION;
-    return d3d11Dev->Release();
+    ULONG refs = d3d11Dev->Release();
+    if (refs == 0)
+    {
+        delete this;
+    }
+    return refs;
 }
 HRESULT STDMETHODCALLTYPE hkID3D11Device::CreateBuffer(const D3D11_BUFFER_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Buffer** ppBuffer)
 {
@@ -32,7 +37,9 @@ HRESULT STDMETHODCALLTYPE hkID3D11Device::CreateTexture1D(const D3D11_TEXTURE1D_
 HRESULT STDMETHODCALLTYPE hkID3D11Device::CreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture2D** ppTexture2D)
 {
     LOG_FUNCTION;
-    return d3d11Dev->CreateTexture2D(pDesc, pInitialData, ppTexture2D);
+    HRESULT hr = d3d11Dev->CreateTexture2D(pDesc, pInitialData, ppTexture2D);
+    LOG << __FUNCTION__ << ": " << std::hex << *ppTexture2D << "; " << std::dec << pDesc->Width << ", " << pDesc->Height << LogEndl::INFO;
+    return hr;
 }
 HRESULT STDMETHODCALLTYPE hkID3D11Device::CreateTexture3D(const D3D11_TEXTURE3D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture3D** ppTexture3D)
 {
@@ -143,7 +150,7 @@ HRESULT STDMETHODCALLTYPE hkID3D11Device::CreateDeferredContext(UINT ContextFlag
 {
     LOG_FUNCTION;
     HRESULT hr = d3d11Dev->CreateDeferredContext(ContextFlags, ppDeferredContext);
-    //*ppDeferredContext = new hkID3D11DeviceContext(*ppDeferredContext);
+    *ppDeferredContext = new hkID3D11DeviceContext(*ppDeferredContext, this);
     return hr;
 }
 HRESULT STDMETHODCALLTYPE hkID3D11Device::OpenSharedResource(HANDLE hResource, REFIID ReturnedInterface, void** ppResource)
@@ -209,9 +216,8 @@ HRESULT STDMETHODCALLTYPE hkID3D11Device::GetDeviceRemovedReason()
 void STDMETHODCALLTYPE hkID3D11Device::GetImmediateContext(ID3D11DeviceContext** ppImmediateContext)
 {
     LOG_FUNCTION;
-    //hkD3d11Ctxt->AddRef();
-    //*ppImmediateContext = hkD3d11Ctxt;
-    return d3d11Dev->GetImmediateContext(ppImmediateContext);
+    hkD3d11Ctxt->AddRef();
+    *ppImmediateContext = hkD3d11Ctxt;
 }
 HRESULT STDMETHODCALLTYPE hkID3D11Device::SetExceptionMode(UINT RaiseFlags)
 {

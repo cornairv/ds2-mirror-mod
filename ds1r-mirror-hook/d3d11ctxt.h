@@ -2,16 +2,17 @@
 
 #include <d3d11.h>
 
-interface hkID3D11Device;
+class hkID3D11Device;
 
-interface hkID3D11DeviceContext : public ID3D11DeviceContext
+class hkID3D11DeviceContext : public ID3D11DeviceContext
 {
 	friend hkID3D11Device;
 private:
 	ID3D11DeviceContext* d3d11Ctxt;
-	ID3D11Device* hkD3d11Dev = nullptr;
+	hkID3D11Device* hkD3d11Dev = nullptr;
 public:
 	hkID3D11DeviceContext(ID3D11DeviceContext* ctxt) : d3d11Ctxt(ctxt) {}
+	hkID3D11DeviceContext(ID3D11DeviceContext* ctxt, hkID3D11Device* dev) : d3d11Ctxt(ctxt), hkD3d11Dev(dev) {}
 
 	virtual HRESULT QueryInterface(REFIID riid, void** ppvObj);
 	virtual ULONG AddRef();

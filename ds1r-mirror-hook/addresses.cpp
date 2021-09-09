@@ -7,7 +7,7 @@
 ADDRESS(tSetFloatingRect, oSetLockonRect, 0x00c82a80);
 ADDRESS(tSetFloatingRect, oSetEnemyRect, 0x00fae900);
 ADDRESS(tSetFloatingRect, oSetPhantomRect, 0x00fa8c90);
-ADDRESS(tRenderPostProcess, oRenderPostProcess, 0x00fd3600);
+ADDRESS(tRenderPostProcess, oRenderPostProcess, 0x14045ed20);
 
 // input
 ADDRESS(tSetup_FrpgMenuDlgFeShortcut, oSetup_FrpgMenuDlgFeShortcut, 0x00c82f00);
@@ -19,3 +19,6 @@ ADDRESS(byte**, pGameDataManager, 0x01378700);
 
 // audio
 ADDRESS(tEventSystem_Create, oEventSystem_Create, 0x006ed0ee);
+
+// misc
+ADDRESS(byte*, hashCheckCmp, 0x1429c74be);
