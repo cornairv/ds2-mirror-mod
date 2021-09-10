@@ -38,7 +38,19 @@ HRESULT STDMETHODCALLTYPE hkID3D11Device::CreateTexture2D(const D3D11_TEXTURE2D_
 {
     LOG_FUNCTION;
     HRESULT hr = d3d11Dev->CreateTexture2D(pDesc, pInitialData, ppTexture2D);
-    LOG << __FUNCTION__ << ": " << std::hex << *ppTexture2D << "; " << std::dec << pDesc->Width << ", " << pDesc->Height << LogEndl::INFO;
+    LOG << __FUNCTION__ << ": " << std::hex << *ppTexture2D << "\n"
+        << "Width: " << std::dec << pDesc->Width
+        << "\nHeight: " << pDesc->Height
+        << "\nMipLevels: " << pDesc->MipLevels
+        << "\nArraySize: " << pDesc->ArraySize
+        << "\nFormat: " << pDesc->Format
+        << "\nCount: " << pDesc->SampleDesc.Count
+        << "\nQuality: " << pDesc->SampleDesc.Quality
+        << "\nUsage: " << pDesc->Usage
+        << "\nBindFlags: " << std::hex << pDesc->BindFlags
+        << "\nCPUAccessFlags: " << pDesc->CPUAccessFlags
+        << "\nMiscFlags: " << pDesc->MiscFlags
+        << LogEndl::INFO;
     return hr;
 }
 HRESULT STDMETHODCALLTYPE hkID3D11Device::CreateTexture3D(const D3D11_TEXTURE3D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture3D** ppTexture3D)

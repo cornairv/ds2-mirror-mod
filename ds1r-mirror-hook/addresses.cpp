@@ -8,6 +8,7 @@ ADDRESS(tSetFloatingRect, oSetLockonRect, 0x00c82a80);
 ADDRESS(tSetFloatingRect, oSetEnemyRect, 0x00fae900);
 ADDRESS(tSetFloatingRect, oSetPhantomRect, 0x00fa8c90);
 ADDRESS(tRenderPostProcess, oRenderPostProcess, 0x14045ed20);
+ADDRESS(byte**, pFrpgWindow, 0x141d06ef8);
 
 // input
 ADDRESS(tSetup_FrpgMenuDlgFeShortcut, oSetup_FrpgMenuDlgFeShortcut, 0x00c82f00);

@@ -145,6 +145,8 @@
     <Text Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="mirror.fx" />
+    <FxCompile Include="mirror.hlsl">
+      <Filter>Source Files</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

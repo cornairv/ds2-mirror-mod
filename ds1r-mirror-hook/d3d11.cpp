@@ -3,6 +3,7 @@
 #include "d3d11dev.h"
 #include "d3d11ctxt.h"
 #include "logger.h"
+#include "render_manager.h"
 
 HRESULT WINAPI hkD3D11CreateDevice(
     IDXGIAdapter* pAdapter,
@@ -39,6 +40,9 @@ HRESULT WINAPI hkD3D11CreateDevice(
 
         LOG << "Created device: " << std::hex << hkD3d11Dev << LogEndl::INFO;
         LOG << "Created context: " << std::hex << hkD3d11Ctxt << LogEndl::INFO;
+
+        RenderManager::getInstance().setD3d11Dev(d3d11Dev);
+        RenderManager::getInstance().setD3d11Ctxt(d3d11Ctxt);
 
         if (ppImmediateContext)
         {

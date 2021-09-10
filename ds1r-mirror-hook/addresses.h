@@ -11,6 +11,8 @@ extern tSetFloatingRect oSetPhantomRect;
 typedef void(*tRenderPostProcess)(void*, void*, void*);
 extern tRenderPostProcess oRenderPostProcess;
 
+extern byte** pFrpgWindow;
+
 
 // input
 typedef int(__fastcall* tPropagateKeybinds)(void*);
