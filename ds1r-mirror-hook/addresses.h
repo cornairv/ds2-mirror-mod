@@ -27,8 +27,24 @@ extern tGetMenuState oGetMenuState;
 typedef void(__stdcall* tVoidFunc)();
 extern tVoidFunc oOncePerFrame;
 
+typedef void(*tUpdateInput)(void*, void*);
+extern tUpdateInput oUpdateInput;
+
+typedef void(*tSetupInputBinds)(void*, void*);
+extern tSetupInputBinds oSetupInputBinds;
+
+typedef void* (*tMenuKeyOptionConstructor)(void*, void*, void*, void*);
+extern tMenuKeyOptionConstructor oMenuKeyOptionConstructor;
+
+typedef void*(*tMenuKeyOptionDestructor)(void*, void*, void*, void*);
+extern tMenuKeyOptionDestructor oMenuKeyOptionDestructor;
+
+typedef void* (*tMenuLoadInputBinds)(void*, void*);
+extern tMenuLoadInputBinds oMenuLoadInputBinds;
+
 extern byte** pMenuManager;
 extern byte** pGameDataManager;
+extern byte** pBindingManager;
 
 
 // audio
@@ -37,4 +53,4 @@ extern tEventSystem_Create oEventSystem_Create;
 
 
 // misc
-extern byte* hashCheckCmp;
+extern long long hashCheckCmps[];

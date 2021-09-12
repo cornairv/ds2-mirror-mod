@@ -4,7 +4,7 @@
 #include "addresses.h"
 #include "logger.h"
 
-void RenderManager::mirrorScreen([[maybe_unused]] void* __this, [[maybe_unused]] void* unk1, [[maybe_unused]] void* unk2)
+void RenderManager::mirrorScreen([[maybe_unused]] void* __this, void* unk1, [[maybe_unused]] void* unk2)
 {
 	//LOG << "Render: " << std::hex << __this << "; " << unk1 << "; " << unk2 << LogEndl::INFO;
 
@@ -31,32 +31,41 @@ void RenderManager::mirrorScreen([[maybe_unused]] void* __this, [[maybe_unused]]
 
 	ctx->VSSetShader(mirror.vertexShader, nullptr, 0);
 	ctx->PSSetShader(mirror.pixelShader, nullptr, 0);
+	ctx->OMSetRenderTargets(1, &mirror.dstView, nullptr);
 	ctx->PSSetShaderResources(0, 1, &mirror.srcView);
 	ctx->PSSetSamplers(0, 1, &mirror.samplerState);
 	ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	ctx->IASetInputLayout(mirror.vertexLayout);
 	ctx->IASetVertexBuffers(0, 1, &mirror.vertexBuffer, &mirror.vertexStride, &mirror.vertexOffset);
-	ctx->OMSetRenderTargets(1, &mirror.dstView, nullptr);
 	ctx->Draw(mirror.vertexCount, 0);
+	ctx->CopyResource(mirror.srcRenderTexture, mirror.dstRenderTexture);
 }
 
 void RenderManager::initResources()
 {
+	HRESULT hr;
+
 	// vertex buffer
 	ID3DBlob* vsBlob;
 	ID3DBlob* vsError;
-	D3DCompileFromFile(L"dsmirror\\mirror.hlsl", nullptr, nullptr, "vs_main", "vs_5_0",
+	hr = D3DCompileFromFile(L"dsmirror\\mirror.hlsl", nullptr, nullptr, "vs_main", "vs_5_0",
 		D3DCOMPILE_ENABLE_STRICTNESS, 0, &vsBlob, &vsError);
-	d3d11Dev->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &mirror.vertexShader);
-	vsError->Release();
+	if (hr != 0)
+	{
+		LOG << "D3DCompileFromFile (vs) returned " << std::hex << hr << ":\n" << (char*)vsError->GetBufferPointer() << LogEndl::ERRO;
+	}
+	CHECK(d3d11Dev->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &mirror.vertexShader));
 
 	// pixel shader
 	ID3DBlob* psBlob;
 	ID3DBlob* psError;
-	D3DCompileFromFile(L"dsmirror\\mirror.hlsl", nullptr, nullptr, "ps_main", "vs_5_0",
+	hr = D3DCompileFromFile(L"dsmirror\\mirror.hlsl", nullptr, nullptr, "ps_main", "ps_5_0",
 		D3DCOMPILE_ENABLE_STRICTNESS, 0, &psBlob, &psError);
-	d3d11Dev->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &mirror.pixelShader);
-	psError->Release();
+	if (hr != 0)
+	{
+		LOG << "D3DCompileFromFile (ps) returned " << std::hex << hr << ":\n" << (char*)psError->GetBufferPointer() << LogEndl::ERRO;
+	}
+	CHECK(d3d11Dev->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &mirror.pixelShader));
 
 	// sampler state
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -70,10 +79,10 @@ void RenderManager::initResources()
 	samplerDesc.BorderColor[0] = 1;
 	samplerDesc.BorderColor[1] = 0;
 	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
+	samplerDesc.BorderColor[3] = 1;
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = 0;
-	d3d11Dev->CreateSamplerState(&samplerDesc, &mirror.samplerState);
+	CHECK(d3d11Dev->CreateSamplerState(&samplerDesc, &mirror.samplerState));
 
 	// vertex layout
 	D3D11_INPUT_ELEMENT_DESC vertexLayoutDesc[2];
@@ -93,7 +102,7 @@ void RenderManager::initResources()
 	texDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	texDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	texDesc.InstanceDataStepRate = 0;
-	d3d11Dev->CreateInputLayout(vertexLayoutDesc, 2, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &mirror.vertexLayout);
+	CHECK(d3d11Dev->CreateInputLayout(vertexLayoutDesc, 2, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &mirror.vertexLayout));
 
 	// vertex buffer
 	float vertexData[][5] =
@@ -114,7 +123,7 @@ void RenderManager::initResources()
 	vertexResource.pSysMem = vertexData;
 	vertexResource.SysMemPitch = 0;
 	vertexResource.SysMemSlicePitch = 0;
-	d3d11Dev->CreateBuffer(&vertexBufferDesc, &vertexResource, &mirror.vertexBuffer);
+	CHECK(d3d11Dev->CreateBuffer(&vertexBufferDesc, &vertexResource, &mirror.vertexBuffer));
 
 	mirror.initialized = true;
 }
@@ -153,7 +162,7 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 		texDesc.CPUAccessFlags = 0;
 		texDesc.MiscFlags = 0;
-		d3d11Dev->CreateTexture2D(&texDesc, nullptr, &mirror.dstRenderTexture);
+		CHECK(d3d11Dev->CreateTexture2D(&texDesc, nullptr, &mirror.dstRenderTexture));
 
 		// create render target for texture
 		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
@@ -162,7 +171,7 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		rtvDesc.Texture2D.MipSlice = 0;
 		if (mirror.dstRenderTexture)
 		{
-			d3d11Dev->CreateRenderTargetView(mirror.dstRenderTexture, &rtvDesc, &mirror.dstView);
+			CHECK(d3d11Dev->CreateRenderTargetView(mirror.dstRenderTexture, &rtvDesc, &mirror.dstView));
 		}
 		else
 		{
@@ -174,8 +183,8 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		srvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = 1;
-		srvDesc.Texture2D.MipLevels = 0;
-		d3d11Dev->CreateShaderResourceView(mirror.srcRenderTexture, &srvDesc, &mirror.srcView);
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		CHECK(d3d11Dev->CreateShaderResourceView(mirror.srcRenderTexture, &srvDesc, &mirror.srcView));
 	}
 }
 

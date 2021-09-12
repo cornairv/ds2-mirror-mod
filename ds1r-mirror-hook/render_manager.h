@@ -34,6 +34,8 @@ public:
 	void initResources();
 	void initContext(ID3D11DeviceContext* ctx);
 
+	std::map<ID3D11Texture2D*, D3D11_TEXTURE2D_DESC> textureInfo;
+
 private:
 
 	struct mirror_resources

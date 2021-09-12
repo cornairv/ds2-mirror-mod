@@ -14,8 +14,11 @@
 
 void setupHooks()
 {
-	// patch executable hash check (crashes game if hash mismatches)
-	PatchCmp(hashCheckCmp);
+	// patch executable hash checks (crashes game if hash mismatches)
+	for (long long* ptr = hashCheckCmps; *ptr != 0; ptr++)
+	{
+		PatchCmp((void*)*ptr);
+	}
 
 	CHECK(DetourTransactionBegin());
 	CHECK(DetourUpdateThread(GetCurrentThread()));
@@ -28,7 +31,12 @@ void setupHooks()
 	//ATTACH_HOOK(SetPhantomRect);
 
 	// input
-	//ATTACH_HOOK(XInputGetState);
+	ATTACH_HOOK(XInputGetState);
+	ATTACH_HOOK(SetupInputBinds);
+	//ATTACH_HOOK(MenuLoadInputBinds);
+	ATTACH_HOOK(MenuKeyOptionConstructor);
+	ATTACH_HOOK(MenuKeyOptionDestructor);
+	//ATTACH_HOOK(UpdateInput3);
 	//ATTACH_HOOK(XInputSetState);
 	//ATTACH_HOOK(Setup_FrpgMenuDlgFeShortcut);
 

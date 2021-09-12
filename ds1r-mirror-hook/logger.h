@@ -46,14 +46,14 @@ void MyDebugBreak();
 
 #define CHECK(expr) \
 	do { \
-		long hr = (long)(expr); \
-		if (hr != 0) \
-			LOG << "(" << __FILE__ << ":" << ##__LINE__ << ") Expression returned " << hr << ": " << #expr << LogEndl::WARN; \
+		long __hr = (long)(expr); \
+		if (__hr != 0) \
+			LOG << "(" << __FILE__ << ":" << ##__LINE__ << ") Expression returned " << std::hex << __hr << ": " << #expr << LogEndl::ERRO; \
 	} while (0)
 
 #define CHECK_TRUE(expr) \
 	do { \
-		bool hr = (bool)(expr); \
-		if (hr != true) \
-			LOG << "(" << __FILE__ << ":" << ##__LINE__ << ") Expression returned false: " << #expr << LogEndl::WARN; \
+		bool __hr = (bool)(expr); \
+		if (__hr != true) \
+			LOG << "(" << __FILE__ << ":" << ##__LINE__ << ") Expression returned false: " << #expr << LogEndl::ERRO; \
 	} while (0)

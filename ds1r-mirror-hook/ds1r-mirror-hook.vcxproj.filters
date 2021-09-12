@@ -18,22 +18,13 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="d3d9.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dinput8.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="d3d9int.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="hooks.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d9dev.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="render_manager.h">
@@ -80,22 +71,13 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="d3d9.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dinput8.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="d3d9int.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hooks.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d9dev.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="render_manager.cpp">

@@ -5,6 +5,12 @@
 #include <map>
 #include "config.h"
 
+struct KeyBinding
+{
+	UINT modCode;	// 0x12c = no modifier
+	UINT code;		// bit 3: 0 = keyboard, 1 = mouse
+};
+
 class KeyWrapper
 {
 public:
@@ -38,6 +44,11 @@ public:
 	void modifySetXInput(XINPUT_VIBRATION* pVibration);
 	void modifyWeaponIcons(void* obj);
 
+	void swapInputBindings();
+	void swapInputBindings(long long* bindData);
+
+	void setKeyOptionMenuState(bool state);
+
 	bool toggleState = true;
 
 private:
@@ -52,10 +63,18 @@ private:
 	float* leftWeaponCoords = nullptr;
 	float* rightWeaponCoords = nullptr;
 	KeyWrapper toggleKey;
+	bool keyOptionMenuOpen = false;
 };
 
 int __fastcall hkPropagateKeybinds(void* inputStructure);
 void __fastcall hkSetup_FrpgMenuDlgFeShortcut(void* __this, int __edx, void* unk1, void* unk2, void* unk3);
+
+void hkUpdateInput(void* __this, void* unk);
+void hkSetupInputBinds(void* __this, void* pBindData);
+void* hkMenuKeyOptionConstructor(void* __this, void* unk1, void* unk2, void* unk3);
+void* hkMenuKeyOptionDestructor(void* __this, void* unk1, void* unk2, void* unk3);
+void* hkMenuLoadInputBinds(void* dst, void* src);
+
 
 bool isMenuOpen();
 unsigned int getIngameTime();

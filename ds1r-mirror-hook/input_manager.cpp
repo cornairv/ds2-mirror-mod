@@ -142,8 +142,88 @@ void InputManager::modifyKeyboardInput(byte* state)
 	}
 }
 
-void InputManager::modifyGetXInput(XINPUT_STATE* pState)
+void InputManager::swapInputBindings()
 {
+	byte* bindingManager = *pBindingManager;
+	byte* bindingsStart = *(byte**)(bindingManager + 0x8);
+	byte* bindingsEnd = *(byte**)(bindingManager + 0x10);
+	for (byte* currentBinding = bindingsStart; currentBinding < bindingsEnd; currentBinding += 0x148)
+	{
+		//int inputType = *(int*)(currentBinding + 0x88);
+		long long* bindData = *(long long**)currentBinding;
+		swapInputBindings(bindData);
+	}
+}
+
+void InputManager::swapInputBindings(long long* bindData)
+{
+	std::swap(bindData[2], bindData[3]);	// move left/right
+	std::swap(bindData[6], bindData[7]);	// camera left/right
+	std::swap(bindData[10], bindData[11]);	// switch weapons
+	std::swap(bindData[14], bindData[16]);	// light attack/block
+	std::swap(bindData[15], bindData[17]);	// heavy attack/parry
+}
+
+void InputManager::setKeyOptionMenuState(bool state)
+{
+	keyOptionMenuOpen = state;
+	swapInputBindings();
+}
+
+void hkUpdateInput(void* __this, void* unk)
+{
+	InputManager::getInstance().swapInputBindings();
+
+	oUpdateInput(__this, unk);
+
+	InputManager::getInstance().swapInputBindings();
+}
+
+void hkSetupInputBinds(void* __this, void* pBindData)
+{
+	long long* bindData = *(long long**)pBindData;
+	InputManager::getInstance().swapInputBindings(bindData);
+	oSetupInputBinds(__this, pBindData);
+}
+
+void* hkMenuKeyOptionConstructor(void* __this, void* unk1, void* unk2, void* unk3)
+{
+	InputManager::getInstance().setKeyOptionMenuState(true);
+	return oMenuKeyOptionConstructor(__this, unk1, unk2, unk3);
+}
+
+void* hkMenuKeyOptionDestructor(void* __this, void* unk1, void* unk2, void* unk3)
+{
+	void* ret = oMenuKeyOptionDestructor(__this, unk1, unk2, unk3);
+	InputManager::getInstance().setKeyOptionMenuState(false);
+	return ret;
+}
+
+void* hkMenuLoadInputBinds(void* dst, void* src)
+{
+	long long* bindData = *(long long**)src;
+	InputManager::getInstance().swapInputBindings(bindData);
+	void* ret = oMenuLoadInputBinds(dst, src);
+	InputManager::getInstance().swapInputBindings(bindData);
+	return ret;
+}
+
+void InputManager::modifyGetXInput([[maybe_unused]] XINPUT_STATE* pState)
+{
+	if (pState->Gamepad.bLeftTrigger > 100)
+	{
+		byte* bindingManager = *pBindingManager;
+		byte* bindingsStart = *(byte**)(bindingManager + 0x8);
+		byte* bindingsEnd = *(byte**)(bindingManager + 0x10);
+		int i = 0;
+		for (byte* currentBinding = bindingsStart; currentBinding < bindingsEnd; currentBinding += 0x148)
+		{
+			int inputType = *(int*)(currentBinding + 0x88);
+			LOG << i << ": input: " << inputType << "; binding: " << std::hex << (void*)currentBinding << LogEndl::INFO;
+			i++;
+		}
+	}
+	/*
 	if (toggleState)
 	{
 		bool menu = isMenuOpen();
@@ -162,6 +242,7 @@ void InputManager::modifyGetXInput(XINPUT_STATE* pState)
 			std::swap(pState->Gamepad.bLeftTrigger, pState->Gamepad.bRightTrigger);
 		}
 	}
+	*/
 }
 
 void InputManager::modifySetXInput(XINPUT_VIBRATION* pVibration)

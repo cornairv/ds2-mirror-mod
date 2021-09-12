@@ -45,8 +45,8 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, [[maybe_unused]
         oDirectInput8Create = (tDirectInput8Create)GetProcAddress(dinputDll, "DirectInput8Create");
         CHECK_TRUE(oDirectInput8Create != nullptr);
 
+        LOG << "Starting hook" << LogEndl::ERRO;
         setupHooks();
-        LOG << "Finished hook" << LogEndl::ERRO;
 
         return true;
 

@@ -17,9 +17,20 @@ ADDRESS(tPropagateKeybinds, oPropagateKeybinds, 0x00f73ff0);
 ADDRESS(tVoidFunc, oOncePerFrame, 0x00BAC020);
 ADDRESS(byte**, pMenuManager, 0x013786d0);
 ADDRESS(byte**, pGameDataManager, 0x01378700);
+ADDRESS(byte**, pBindingManager, 0x141d52790);
+ADDRESS(tUpdateInput, oUpdateInput, 0x14017f0a0);
+ADDRESS(tSetupInputBinds, oSetupInputBinds, 0x140c8ec50);
+ADDRESS(tMenuKeyOptionConstructor, oMenuKeyOptionConstructor, 0x14013e9e0);
+ADDRESS(tMenuKeyOptionDestructor, oMenuKeyOptionDestructor, 0x1401456c0);
+ADDRESS(tMenuLoadInputBinds, oMenuLoadInputBinds, 0x140145350);
 
 // audio
 ADDRESS(tEventSystem_Create, oEventSystem_Create, 0x006ed0ee);
 
 // misc
-ADDRESS(byte*, hashCheckCmp, 0x1429c74be);
+long long hashCheckCmps[] =
+{
+	0x1429c74be,
+	0x14268e016,
+	0
+};

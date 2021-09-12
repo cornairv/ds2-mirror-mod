@@ -1,6 +1,6 @@
 #pragma once
 
-#include <XInput.h>
+#include <Xinput.h>
 
 typedef DWORD (WINAPI* tXInputGetState)(DWORD, XINPUT_STATE*);
 extern tXInputGetState oXInputGetState;
