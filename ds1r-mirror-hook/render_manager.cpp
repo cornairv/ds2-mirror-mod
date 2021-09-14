@@ -185,6 +185,10 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		srvDesc.Texture2D.MipLevels = 1;
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		CHECK(d3d11Dev->CreateShaderResourceView(mirror.srcRenderTexture, &srvDesc, &mirror.srcView));
+
+		// reset weapon icon sizes
+		rightWeaponIconObj = nullptr;
+		leftWeaponIconObj = nullptr;
 	}
 }
 
@@ -195,11 +199,47 @@ void RenderManager::getRenderSize(UINT& width, UINT& height)
 	height = dimensions[1];
 }
 
-void RenderManager::mirrorRectPosition([[maybe_unused]] void* __this)
+
+void RenderManager::modifyUIRect(void* __this, float* newRect)
 {
-
+	void* vtable = *(void**)__this;
+	int rectOffset = 0xC4;
+	int idOffset = 0x208;
+	if (vtable == vtWeaponSwitchIcons)
+	{
+		byte* bytes = (byte*)__this;
+		int id = *(int*)(bytes + idOffset);
+		float* rect = (float*)(bytes + rectOffset);
+		if (id == 2)
+		{
+			rightWeaponIconObj = __this;
+			memcpy_s(rightWeaponIconCoords, sizeof(float) * 4, newRect, sizeof(float) * 4);
+			if (leftWeaponIconObj)
+			{
+				memcpy_s(rect, sizeof(float) * 4, leftWeaponIconCoords, sizeof(float) * 4);
+			}
+		}
+		else if (id == 3)
+		{
+			leftWeaponIconObj = __this;
+			memcpy_s(leftWeaponIconCoords, sizeof(float) * 4, newRect, sizeof(float) * 4);
+			if (rightWeaponIconObj)
+			{
+				memcpy_s(rect, sizeof(float) * 4, rightWeaponIconCoords, sizeof(float) * 4);
+			}
+		}
+	}
+	else if (vtable == vtEnemyGauge || vtable == vtPhantomGauge || vtable == vtLockonTarget)
+	{
+		byte* bytes = (byte*)__this;
+		float* rect = (float*)(bytes + rectOffset);
+		UINT width, height;
+		getRenderSize(width, height);
+		rect[0] = width - rect[0];
+		rect[2] = width - rect[2];
+		std::swap(rect[0], rect[2]);
+	}
 }
-
 
 void RenderManager::reset()
 {
@@ -222,4 +262,10 @@ void hkRenderPostProcess(void* __this, void* unk1, void* unk2)
 			RenderManager::getInstance().mirrorScreen(__this, unk1, unk2);
 		}
 	}
+}
+
+void hkSetUIRect(void* __this, float* rect)
+{
+	oSetUIRect(__this, rect);
+	RenderManager::getInstance().modifyUIRect(__this, rect);
 }

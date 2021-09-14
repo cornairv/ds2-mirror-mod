@@ -23,7 +23,7 @@ public:
 
 	void reset();
 
-	void mirrorRectPosition(void* __this);
+	void modifyUIRect(void* __this, float* newRect);
 	void mirrorScreen(void* __this, void* unk1, void* unk2);
 
 	void getRenderSize(UINT& width, UINT& height);
@@ -57,8 +57,14 @@ private:
 		bool initialized = false;
 	} mirror;
 
+	void* leftWeaponIconObj = nullptr;
+	void* rightWeaponIconObj = nullptr;
+	float leftWeaponIconCoords[4] = {};
+	float rightWeaponIconCoords[4] = {};
+
 	ID3D11Device* d3d11Dev = nullptr;
 	ID3D11DeviceContext* d3d11Ctxt = nullptr;
 };
 
 void hkRenderPostProcess(void* __this, void* unk1, void* unk2);
+void hkSetUIRect(void* __this, float* rect);

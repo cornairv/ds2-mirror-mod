@@ -42,12 +42,12 @@ public:
 	void modifyDirectInput(DWORD cbData, LPVOID lpvData);
 	void modifyGetXInput(XINPUT_STATE* pState);
 	void modifySetXInput(XINPUT_VIBRATION* pVibration);
-	void modifyWeaponIcons(void* obj);
 
 	void swapInputBindings();
 	void swapInputBindings(long long* bindData);
 
 	void setKeyOptionMenuState(bool state);
+
 
 	bool toggleState = true;
 
@@ -60,20 +60,17 @@ private:
 	bool leftClicking = false;
 	static std::map<int, int> keyMap;
 	static std::map<int, int> modifierKeyMap;
-	float* leftWeaponCoords = nullptr;
-	float* rightWeaponCoords = nullptr;
 	KeyWrapper toggleKey;
 	bool keyOptionMenuOpen = false;
 };
 
 int __fastcall hkPropagateKeybinds(void* inputStructure);
-void __fastcall hkSetup_FrpgMenuDlgFeShortcut(void* __this, int __edx, void* unk1, void* unk2, void* unk3);
+void hkSetup_FrpgMenuDlgFeShortcut(void* __this, int unk1, void* unk2, void* unk3);
+void hkUpdateUIElement(void* __this, void* unk);
 
-void hkUpdateInput(void* __this, void* unk);
 void hkSetupInputBinds(void* __this, void* pBindData);
 void* hkMenuKeyOptionConstructor(void* __this, void* unk1, void* unk2, void* unk3);
 void* hkMenuKeyOptionDestructor(void* __this, void* unk1, void* unk2, void* unk3);
-void* hkMenuLoadInputBinds(void* dst, void* src);
 
 
 bool isMenuOpen();

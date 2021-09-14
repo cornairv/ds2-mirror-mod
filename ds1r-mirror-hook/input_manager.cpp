@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "input_manager.h"
+#include "render_manager.h"
 #include "addresses.h"
 #include "util.h"
 #include "logger.h"
+#include "config.h"
 #include <map>
 #include <dinput.h>
 #include <vector>
-#include "config.h"
 
 KeyWrapper::KeyWrapper(int keyCode) : keyCode(keyCode)
 {
@@ -42,13 +43,6 @@ void InputManager::modifyDirectInput(DWORD cbData, [[maybe_unused]] LPVOID lpvDa
 		if (toggleKey.pressed)
 		{
 			toggleState = !toggleState;
-			if (leftWeaponCoords && rightWeaponCoords)
-			{
-				for (int i = 0; i < 4; i++)
-				{
-					std::swap(leftWeaponCoords[i], rightWeaponCoords[i]);
-				}
-			}
 		}
 	}
 }
@@ -170,15 +164,6 @@ void InputManager::setKeyOptionMenuState(bool state)
 	swapInputBindings();
 }
 
-void hkUpdateInput(void* __this, void* unk)
-{
-	InputManager::getInstance().swapInputBindings();
-
-	oUpdateInput(__this, unk);
-
-	InputManager::getInstance().swapInputBindings();
-}
-
 void hkSetupInputBinds(void* __this, void* pBindData)
 {
 	long long* bindData = *(long long**)pBindData;
@@ -196,15 +181,6 @@ void* hkMenuKeyOptionDestructor(void* __this, void* unk1, void* unk2, void* unk3
 {
 	void* ret = oMenuKeyOptionDestructor(__this, unk1, unk2, unk3);
 	InputManager::getInstance().setKeyOptionMenuState(false);
-	return ret;
-}
-
-void* hkMenuLoadInputBinds(void* dst, void* src)
-{
-	long long* bindData = *(long long**)src;
-	InputManager::getInstance().swapInputBindings(bindData);
-	void* ret = oMenuLoadInputBinds(dst, src);
-	InputManager::getInstance().swapInputBindings(bindData);
 	return ret;
 }
 
@@ -253,32 +229,16 @@ void InputManager::modifySetXInput(XINPUT_VIBRATION* pVibration)
 	}
 }
 
-void InputManager::modifyWeaponIcons(void* obj)
-{
-	byte* bytes = (byte*)obj;
-	int id = *(int*)(bytes + 0xf4);
-	float* coords = (float*)(bytes + 0x78);
-	if (id == 2) // right weapon
-	{
-		rightWeaponCoords = coords;
-	}
-	else if (id == 3) // left weapon
-	{
-		leftWeaponCoords = coords;
-		if (toggleState && config.invertWeaponSwitch)
-		{
-			for (int i = 0; i < 4; i++)
-			{
-				std::swap(leftWeaponCoords[i], rightWeaponCoords[i]);
-			}
-		}
-	}
-}
-
-void __fastcall hkSetup_FrpgMenuDlgFeShortcut(void* __this, [[maybe_unused]] int __edx, void* unk1, void* unk2, void* unk3)
+void hkSetup_FrpgMenuDlgFeShortcut(void* __this, int unk1, void* unk2, void* unk3)
 {
 	oSetup_FrpgMenuDlgFeShortcut(__this, unk1, unk2, unk3);
-	InputManager::getInstance().modifyWeaponIcons(__this);
+	//InputManager::getInstance().modifyWeaponIcons(__this);
+}
+
+void hkUpdateUIElement(void* __this, void* unk)
+{
+	oUpdateUIElement(__this, unk);
+	//InputManager::getInstance().modifyWeaponIcons(__this);
 }
 
 bool isMenuOpen()

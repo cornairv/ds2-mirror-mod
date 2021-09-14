@@ -18,7 +18,7 @@ extern byte** pFrpgWindow;
 typedef int(__fastcall* tPropagateKeybinds)(void*);
 extern tPropagateKeybinds oPropagateKeybinds;
 
-typedef void(__thiscall* tSetup_FrpgMenuDlgFeShortcut)(void*, void*, void*, void*);
+typedef void(*tSetup_FrpgMenuDlgFeShortcut)(void*, int, void*, void*);
 extern tSetup_FrpgMenuDlgFeShortcut oSetup_FrpgMenuDlgFeShortcut;
 
 typedef int(__stdcall* tGetMenuState)();
@@ -26,9 +26,6 @@ extern tGetMenuState oGetMenuState;
 
 typedef void(__stdcall* tVoidFunc)();
 extern tVoidFunc oOncePerFrame;
-
-typedef void(*tUpdateInput)(void*, void*);
-extern tUpdateInput oUpdateInput;
 
 typedef void(*tSetupInputBinds)(void*, void*);
 extern tSetupInputBinds oSetupInputBinds;
@@ -41,6 +38,17 @@ extern tMenuKeyOptionDestructor oMenuKeyOptionDestructor;
 
 typedef void* (*tMenuLoadInputBinds)(void*, void*);
 extern tMenuLoadInputBinds oMenuLoadInputBinds;
+
+typedef void(*tUpdateUIElement)(void*, void*);
+extern tUpdateUIElement oUpdateUIElement;
+
+typedef void(*tSetUIRect)(void*, float*);
+extern tSetUIRect oSetUIRect;
+
+extern void* vtWeaponSwitchIcons;
+extern void* vtEnemyGauge;
+extern void* vtPhantomGauge;
+extern void* vtLockonTarget;
 
 extern byte** pMenuManager;
 extern byte** pGameDataManager;
