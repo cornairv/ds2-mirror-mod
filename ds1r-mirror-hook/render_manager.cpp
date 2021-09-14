@@ -4,18 +4,8 @@
 #include "addresses.h"
 #include "logger.h"
 
-void RenderManager::mirrorScreen([[maybe_unused]] void* __this, void* unk1, [[maybe_unused]] void* unk2)
+void RenderManager::mirrorScreen(void* unk1)
 {
-	//LOG << "Render: " << std::hex << __this << "; " << unk1 << "; " << unk2 << LogEndl::INFO;
-
-	// get the render target resource
-	/*
-	byte* ptr = (byte*)unk1;
-	ptr = *(byte**)(ptr + 0x90);
-	ptr = *(byte**)(ptr + 0x28);
-	ptr = *(byte**)(ptr + 0x38);
-	ID3D11RenderTargetView* renderTargetView = (ID3D11RenderTargetView*)ptr;
-	*/
 
 	// get current context
 	byte* ptr = (byte*)unk1;
@@ -39,6 +29,31 @@ void RenderManager::mirrorScreen([[maybe_unused]] void* __this, void* unk1, [[ma
 	ctx->IASetVertexBuffers(0, 1, &mirror.vertexBuffer, &mirror.vertexStride, &mirror.vertexOffset);
 	ctx->Draw(mirror.vertexCount, 0);
 	ctx->CopyResource(mirror.srcRenderTexture, mirror.dstRenderTexture);
+}
+
+void RenderManager::modifyPostProcess([[maybe_unused]] void* __this, [[maybe_unused]] void* unk1, [[maybe_unused]] void* unk2)
+{
+	// get AA mode
+	byte* gameData = *pGameData;
+	byte* pcOptionData = *(byte**)(gameData + 0x68);
+	int aaMode = *(int*)(pcOptionData + 0xf0);
+
+	// FXAA adds an extra post process stage, so check if it's enabled
+	int finalPostProcessStage = 0x1e;	//no AA or temporal AA
+	if (aaMode == 1)
+	{
+		finalPostProcessStage = 0x20;	// FXAA
+	}
+	else if (aaMode == 2)
+	{
+		finalPostProcessStage = 0x21;	// FXAA high
+	}
+
+	int postProcessStage = *(int*)((byte*)__this + 0x38);
+	if (postProcessStage == finalPostProcessStage)
+	{
+		RenderManager::getInstance().mirrorScreen(unk1);
+	}
 }
 
 void RenderManager::initResources()
@@ -186,7 +201,7 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		CHECK(d3d11Dev->CreateShaderResourceView(mirror.srcRenderTexture, &srvDesc, &mirror.srcView));
 
-		// reset weapon icon sizes
+		// reset weapon icon state
 		rightWeaponIconObj = nullptr;
 		leftWeaponIconObj = nullptr;
 	}
@@ -255,15 +270,11 @@ void hkRenderPostProcess(void* __this, void* unk1, void* unk2)
 	oRenderPostProcess(__this, unk1, unk2);
 	if (InputManager::getInstance().toggleState)
 	{
-		int processType = *(int*)((byte*)__this + 0x38);
-		if (processType == 0x1e || processType == 0x1f)
-		{
-			//LOG << __FUNCTION__ << LogEndl::INFO;
-			RenderManager::getInstance().mirrorScreen(__this, unk1, unk2);
-		}
+		RenderManager::getInstance().modifyPostProcess(__this, unk1, unk2);
 	}
 }
 
+// modify positions of UI elements
 void hkSetUIRect(void* __this, float* rect)
 {
 	oSetUIRect(__this, rect);

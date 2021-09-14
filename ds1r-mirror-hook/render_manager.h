@@ -24,7 +24,8 @@ public:
 	void reset();
 
 	void modifyUIRect(void* __this, float* newRect);
-	void mirrorScreen(void* __this, void* unk1, void* unk2);
+	void modifyPostProcess(void* __this, void* unk1, void* unk2);
+	void mirrorScreen(void* unk1);
 
 	void getRenderSize(UINT& width, UINT& height);
 

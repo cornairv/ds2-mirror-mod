@@ -61,4 +61,5 @@ extern tEventSystem_Create oEventSystem_Create;
 
 
 // misc
+extern byte** pGameData;
 extern long long hashCheckCmps[];

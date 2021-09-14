@@ -34,6 +34,8 @@ ADDRESS(tSetUIRect, oSetUIRect, 0x140ed4010);
 ADDRESS(tEventSystem_Create, oEventSystem_Create, 0x006ed0ee);
 
 // misc
+ADDRESS(byte**, pGameData, 0x141d278f0);
+
 long long hashCheckCmps[] =
 {
 	0x1429c74be,
