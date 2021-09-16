@@ -34,8 +34,8 @@ extern byte** pBindingManager;
 
 
 // audio
-typedef int(*tEventSystem_Create)(void**);
-extern tEventSystem_Create oEventSystem_Create;
+typedef int(*tSet3DListenerAttributes)(void*, int, void*, void*, void*, void*);
+extern tSet3DListenerAttributes oSet3DListenerAttributes;
 
 
 // misc

@@ -35,7 +35,7 @@ void setupHooks()
 	ATTACH_HOOK(MenuKeyOptionDestructor);
 
 	// audio
-	//ATTACH_HOOK(EventSystem_Create);
+	ATTACH_HOOK(Set3DListenerAttributes);
 
 	CHECK(DetourTransactionCommit());
 }

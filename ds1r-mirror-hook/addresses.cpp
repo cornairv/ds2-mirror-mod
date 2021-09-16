@@ -21,7 +21,7 @@ ADDRESS(void*, vtWeaponSwitchIcons, 0x1413abc30);
 
 
 // audio
-ADDRESS(tEventSystem_Create, oEventSystem_Create, 0x14103b138);
+ADDRESS(tSet3DListenerAttributes, oSet3DListenerAttributes, 0x141047ad6);
 
 
 // misc

@@ -1,3 +1,3 @@
 #pragma once
 
-int __stdcall hkEventSystem_Create(void** eventSystem);
+int hkSet3DListenerAttributes(void* eventsystem, int listener, float* pos, float* vel, float* forward, float* up);
