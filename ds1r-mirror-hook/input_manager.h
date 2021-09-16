@@ -5,12 +5,6 @@
 #include <map>
 #include "config.h"
 
-struct KeyBinding
-{
-	UINT modCode;	// 0x12c = no modifier
-	UINT code;		// bit 3: 0 = keyboard, 1 = mouse
-};
-
 class KeyWrapper
 {
 public:
@@ -39,8 +33,6 @@ public:
 
 	InputManager() : toggleKey(config.toggleKey) { }
 
-	void modifyDirectInput(DWORD cbData, LPVOID lpvData);
-	void modifyGetXInput(XINPUT_STATE* pState);
 	void modifySetXInput(XINPUT_VIBRATION* pVibration);
 
 	void swapInputBindings();
@@ -48,30 +40,16 @@ public:
 
 	void setKeyOptionMenuState(bool state);
 
+	void update();
 
 	bool toggleState = true;
 
 private:
-	void modifyMouseInput(DIMOUSESTATE2* state);
-	void modifyKeyboardInput(byte* state);
-	bool getKeyBinding(int index, int& key, int& modifier);
 
-	bool rightClicking = false;
-	bool leftClicking = false;
-	static std::map<int, int> keyMap;
-	static std::map<int, int> modifierKeyMap;
 	KeyWrapper toggleKey;
 	bool keyOptionMenuOpen = false;
 };
 
-int __fastcall hkPropagateKeybinds(void* inputStructure);
-void hkSetup_FrpgMenuDlgFeShortcut(void* __this, int unk1, void* unk2, void* unk3);
-void hkUpdateUIElement(void* __this, void* unk);
-
 void hkSetupInputBinds(void* __this, void* pBindData);
 void* hkMenuKeyOptionConstructor(void* __this, void* unk1, void* unk2, void* unk3);
 void* hkMenuKeyOptionDestructor(void* __this, void* unk1, void* unk2, void* unk3);
-
-
-bool isMenuOpen();
-unsigned int getIngameTime();

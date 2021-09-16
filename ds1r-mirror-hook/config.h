@@ -28,7 +28,7 @@ struct MyConfig
 	bool invertAttacks = false;
 	bool invertWeaponSwitch = false;
 
-	int toggleKey = '0';
+	int toggleKey = -1;
 
 	std::string loadDll = "";
 	std::string logFile = "";

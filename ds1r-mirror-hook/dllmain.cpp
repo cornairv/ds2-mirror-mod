@@ -7,7 +7,6 @@
 #include "logger.h"
 
 tD3D11CreateDevice oD3D11CreateDevice = D3D11CreateDevice;
-tXInputGetState oXInputGetState = XInputGetState;
 tXInputSetState oXInputSetState = XInputSetState;
 tDirectInput8Create oDirectInput8Create;
 

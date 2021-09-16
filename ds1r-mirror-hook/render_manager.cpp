@@ -52,7 +52,13 @@ void RenderManager::modifyPostProcess([[maybe_unused]] void* __this, [[maybe_unu
 	int postProcessStage = *(int*)((byte*)__this + 0x38);
 	if (postProcessStage == finalPostProcessStage)
 	{
-		RenderManager::getInstance().mirrorScreen(unk1);
+		// this runs once per frame so update InputManager while we're here
+		InputManager::getInstance().update();
+
+		if (InputManager::getInstance().toggleState)
+		{
+			RenderManager::getInstance().mirrorScreen(unk1);
+		}
 	}
 }
 
@@ -214,7 +220,6 @@ void RenderManager::getRenderSize(UINT& width, UINT& height)
 	height = dimensions[1];
 }
 
-
 void RenderManager::modifyUIRect(void* __this, float* newRect)
 {
 	void* vtable = *(void**)__this;
@@ -222,25 +227,28 @@ void RenderManager::modifyUIRect(void* __this, float* newRect)
 	int idOffset = 0x208;
 	if (vtable == vtWeaponSwitchIcons)
 	{
-		byte* bytes = (byte*)__this;
-		int id = *(int*)(bytes + idOffset);
-		float* rect = (float*)(bytes + rectOffset);
-		if (id == 2)
+		if (config.invertWeaponSwitch)
 		{
-			rightWeaponIconObj = __this;
-			memcpy_s(rightWeaponIconCoords, sizeof(float) * 4, newRect, sizeof(float) * 4);
-			if (leftWeaponIconObj)
+			byte* bytes = (byte*)__this;
+			int id = *(int*)(bytes + idOffset);
+			float* rect = (float*)(bytes + rectOffset);
+			if (id == 2)		// right weapon icon
 			{
-				memcpy_s(rect, sizeof(float) * 4, leftWeaponIconCoords, sizeof(float) * 4);
+				rightWeaponIconObj = __this;
+				memcpy_s(rightWeaponIconCoords, sizeof(float) * 4, newRect, sizeof(float) * 4);
+				if (leftWeaponIconObj)
+				{
+					memcpy_s(rect, sizeof(float) * 4, leftWeaponIconCoords, sizeof(float) * 4);
+				}
 			}
-		}
-		else if (id == 3)
-		{
-			leftWeaponIconObj = __this;
-			memcpy_s(leftWeaponIconCoords, sizeof(float) * 4, newRect, sizeof(float) * 4);
-			if (rightWeaponIconObj)
+			else if (id == 3)	// left weapon icon
 			{
-				memcpy_s(rect, sizeof(float) * 4, rightWeaponIconCoords, sizeof(float) * 4);
+				leftWeaponIconObj = __this;
+				memcpy_s(leftWeaponIconCoords, sizeof(float) * 4, newRect, sizeof(float) * 4);
+				if (rightWeaponIconObj)
+				{
+					memcpy_s(rect, sizeof(float) * 4, rightWeaponIconCoords, sizeof(float) * 4);
+				}
 			}
 		}
 	}
@@ -268,15 +276,15 @@ void RenderManager::reset()
 void hkRenderPostProcess(void* __this, void* unk1, void* unk2)
 {
 	oRenderPostProcess(__this, unk1, unk2);
-	if (InputManager::getInstance().toggleState)
-	{
-		RenderManager::getInstance().modifyPostProcess(__this, unk1, unk2);
-	}
+	RenderManager::getInstance().modifyPostProcess(__this, unk1, unk2);
 }
 
 // modify positions of UI elements
 void hkSetUIRect(void* __this, float* rect)
 {
 	oSetUIRect(__this, rect);
-	RenderManager::getInstance().modifyUIRect(__this, rect);
+	if (InputManager::getInstance().toggleState)
+	{
+		RenderManager::getInstance().modifyUIRect(__this, rect);
+	}
 }

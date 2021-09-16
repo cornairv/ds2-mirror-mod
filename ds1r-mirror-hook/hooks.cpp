@@ -26,18 +26,13 @@ void setupHooks()
 	// rendering
 	ATTACH_HOOK(D3D11CreateDevice);
 	ATTACH_HOOK(RenderPostProcess);
-	//ATTACH_HOOK(SetLockonRect);
-	//ATTACH_HOOK(SetEnemyRect);
-	//ATTACH_HOOK(SetPhantomRect);
+	ATTACH_HOOK(SetUIRect);
 
 	// input
-	ATTACH_HOOK(XInputGetState);
+	ATTACH_HOOK(XInputSetState);
 	ATTACH_HOOK(SetupInputBinds);
 	ATTACH_HOOK(MenuKeyOptionConstructor);
 	ATTACH_HOOK(MenuKeyOptionDestructor);
-	//ATTACH_HOOK(XInputSetState);
-	//ATTACH_HOOK(UpdateUIElement);
-	ATTACH_HOOK(SetUIRect);
 
 	// audio
 	//ATTACH_HOOK(EventSystem_Create);

@@ -195,12 +195,8 @@
   <ItemGroup>
     <ClInclude Include="addresses.h" />
     <ClInclude Include="d3d11.h" />
-    <ClInclude Include="d3d11ctxt.h" />
-    <ClInclude Include="d3d11dev.h" />
     <ClInclude Include="fmod.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="dinput8dev.h" />
-    <ClInclude Include="dinput8int.h" />
     <ClInclude Include="hooks.h" />
     <ClInclude Include="dinput8.h" />
     <ClInclude Include="input_manager.h" />
@@ -213,12 +209,8 @@
   <ItemGroup>
     <ClCompile Include="addresses.cpp" />
     <ClCompile Include="d3d11.cpp" />
-    <ClCompile Include="d3d11ctxt.cpp" />
-    <ClCompile Include="d3d11dev.cpp" />
     <ClCompile Include="fmod.cpp" />
     <ClCompile Include="config.cpp" />
-    <ClCompile Include="dinput8dev.cpp" />
-    <ClCompile Include="dinput8int.cpp" />
     <ClCompile Include="hooks.cpp" />
     <ClCompile Include="dinput8.cpp" />
     <ClCompile Include="dllmain.cpp" />

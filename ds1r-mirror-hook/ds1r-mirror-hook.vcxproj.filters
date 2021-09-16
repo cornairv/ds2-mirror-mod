@@ -30,12 +30,6 @@
     <ClInclude Include="render_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dinput8int.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dinput8dev.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="input_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -55,12 +49,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="d3d11.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d11dev.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d11ctxt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -83,12 +71,6 @@
     <ClCompile Include="render_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dinput8int.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dinput8dev.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="input_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -108,12 +90,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="d3d11.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d11dev.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d11ctxt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
