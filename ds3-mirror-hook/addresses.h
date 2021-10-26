@@ -41,3 +41,8 @@ extern tSet3DListenerAttributes oSet3DListenerAttributes;
 // misc
 extern byte** pGameData;
 extern long long hashCheckCmps[];
+
+
+
+typedef void* (*tRenderGlowFilter)(void*, void*, void*);
+extern tRenderGlowFilter oRenderGlowFilter;

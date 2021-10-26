@@ -68,3 +68,5 @@ private:
 
 void hkRenderPostProcess(void* __this, void* unk1, void* unk2);
 void hkSetUIRect(void* __this, float* rect);
+
+extern "C" void hkRenderGlowFilter(void* __this, void* unk1, void* unk2);

@@ -14,28 +14,12 @@
 
 void setupHooks()
 {
-	// patch executable hash checks (crashes game if hash mismatches)
-	for (long long* ptr = hashCheckCmps; *ptr != 0; ptr++)
-	{
-		PatchCmp((void*)*ptr);
-	}
-
 	CHECK(DetourTransactionBegin());
 	CHECK(DetourUpdateThread(GetCurrentThread()));
 
 	// rendering
 	ATTACH_HOOK(D3D11CreateDevice);
-	ATTACH_HOOK(RenderPostProcess);
-	ATTACH_HOOK(SetUIRect);
-
-	// input
-	ATTACH_HOOK(XInputSetState);
-	ATTACH_HOOK(SetupInputBinds);
-	ATTACH_HOOK(MenuKeyOptionConstructor);
-	ATTACH_HOOK(MenuKeyOptionDestructor);
-
-	// audio
-	ATTACH_HOOK(Set3DListenerAttributes);
+	ATTACH_HOOK(RenderGlowFilter);
 
 	CHECK(DetourTransactionCommit());
 }

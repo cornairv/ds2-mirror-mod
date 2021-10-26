@@ -33,3 +33,7 @@ long long hashCheckCmps[] =
 	0x14268e016,
 	0
 };
+
+
+
+ADDRESS(tRenderGlowFilter, oRenderGlowFilter, 0x1401bb790);

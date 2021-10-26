@@ -3,15 +3,14 @@
 #include "input_manager.h"
 #include "addresses.h"
 #include "logger.h"
+#include "util.h"
 
 void RenderManager::mirrorScreen(void* unk1)
 {
 
 	// get current context
-	byte* ptr = (byte*)unk1;
-	ptr = *(byte**)(ptr + 0x90);
-	ptr = *(byte**)(ptr + 0x20);
-	ID3D11DeviceContext* ctx = (ID3D11DeviceContext*)ptr;
+	ID3D11DeviceContext* ctx = derefOffsets<ID3D11DeviceContext*>(unk1, { 0x450, 8, 0 });
+	ctx->GetDevice(&d3d11Dev);
 
 	if (!mirror.initialized)
 	{
@@ -21,12 +20,15 @@ void RenderManager::mirrorScreen(void* unk1)
 
 	ctx->VSSetShader(mirror.vertexShader, nullptr, 0);
 	ctx->PSSetShader(mirror.pixelShader, nullptr, 0);
+	ctx->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 	ctx->OMSetRenderTargets(1, &mirror.dstView, nullptr);
 	ctx->PSSetShaderResources(0, 1, &mirror.srcView);
 	ctx->PSSetSamplers(0, 1, &mirror.samplerState);
 	ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	ctx->IASetInputLayout(mirror.vertexLayout);
 	ctx->IASetVertexBuffers(0, 1, &mirror.vertexBuffer, &mirror.vertexStride, &mirror.vertexOffset);
+	//float color[4] = { 0.f, 0.f, 0.f, 0.f };
+	//ctx->ClearRenderTargetView(mirror.dstView, color);
 	ctx->Draw(mirror.vertexCount, 0);
 	ctx->CopyResource(mirror.srcRenderTexture, mirror.dstRenderTexture);
 }
@@ -151,11 +153,18 @@ void RenderManager::initResources()
 
 void RenderManager::initContext(ID3D11DeviceContext* ctx)
 {
-	ID3D11RenderTargetView* renderTargetView;
-	ctx->OMGetRenderTargets(1, &renderTargetView, nullptr);
+	ID3D11RenderTargetView* renderTargetView[8] = { 0 };
+	LOG << "OMGetRenderTargets" << LogEndl::INFO;
+
+	ctx->OMGetRenderTargets(8, renderTargetView, nullptr);
+	for (int i = 0; i < 8; i++)
+	{
+		LOG << i << ": " << renderTargetView[i] << LogEndl::INFO;
+	}
 	ID3D11Resource* sourceRenderResource;
-	renderTargetView->GetResource(&sourceRenderResource);
-	renderTargetView->Release();
+	LOG << "GetResource" << LogEndl::INFO;
+	renderTargetView[0]->GetResource(&sourceRenderResource);
+	renderTargetView[0]->Release();
 
 	// if the screen size changed, create resources again
 	if (mirror.srcRenderTexture != sourceRenderResource)
@@ -163,6 +172,8 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		// release previous 
 		if (mirror.srcRenderTexture)
 		{
+			LOG << "Release resources" << LogEndl::INFO;
+
 			mirror.srcRenderTexture->Release();
 			mirror.dstRenderTexture->Release();
 			mirror.srcView->Release();
@@ -173,25 +184,30 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 
 		// create render texture for mirroring
 		D3D11_TEXTURE2D_DESC texDesc;
-		getRenderSize(texDesc.Width, texDesc.Height);
+		//getRenderSize(texDesc.Width, texDesc.Height);
+		texDesc.Width = 1920;
+		texDesc.Height = 1080;
 		texDesc.MipLevels = 1;
 		texDesc.ArraySize = 1;
-		texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		texDesc.SampleDesc.Count = 1;
 		texDesc.SampleDesc.Quality = 0;
 		texDesc.Usage = D3D11_USAGE_DEFAULT;
 		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 		texDesc.CPUAccessFlags = 0;
 		texDesc.MiscFlags = 0;
+
+		LOG << "CreateTexture2D" << LogEndl::INFO;
 		CHECK(d3d11Dev->CreateTexture2D(&texDesc, nullptr, &mirror.dstRenderTexture));
 
 		// create render target for texture
 		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
-		rtvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		rtvDesc.Texture2D.MipSlice = 0;
 		if (mirror.dstRenderTexture)
 		{
+			LOG << "CreateRenderTargetView" << LogEndl::INFO;
 			CHECK(d3d11Dev->CreateRenderTargetView(mirror.dstRenderTexture, &rtvDesc, &mirror.dstView));
 		}
 		else
@@ -201,10 +217,12 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 
 		// create shader resource from original render texture
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-		srvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = 1;
 		srvDesc.Texture2D.MostDetailedMip = 0;
+
+		LOG << "CreateShaderResourceView" << LogEndl::INFO;
 		CHECK(d3d11Dev->CreateShaderResourceView(mirror.srcRenderTexture, &srvDesc, &mirror.srcView));
 
 		// reset weapon icon state
@@ -287,4 +305,23 @@ void hkSetUIRect(void* __this, float* rect)
 	{
 		RenderManager::getInstance().modifyUIRect(__this, rect);
 	}
+}
+
+
+int glowCount = 0;
+extern "C" void hkRenderGlowFilter([[maybe_unused]] void* __this, void* unk1, [[maybe_unused]] void* unk2)
+{
+	//byte* addr = (byte*)unk1;
+	//addr = *(byte**)(addr + 0x450);
+	//addr = *(byte**)(addr + 8);
+	//addr = *(byte**)addr;
+	//LOG << "Context: " << std::hex << (int*)addr << LogEndl::INFO;
+
+	RenderManager::getInstance().mirrorScreen(unk1);
+	oRenderGlowFilter(__this, unk1, unk2);
+	//ID3D11RenderTargetView* rtv;
+	//ID3D11DeviceContext* ctx = derefOffsets<ID3D11DeviceContext*>(unk1, { 0x450, 8, 0 });
+	//ctx->OMGetRenderTargets(1, &rtv, nullptr);
+	//float color[4] = { (glowCount++ % 100) / 100.f, 0.f, 0.f, 0.f };
+	//ctx->ClearRenderTargetView(rtv, color);
 }

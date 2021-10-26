@@ -1,6 +1,7 @@
 #pragma once
 
 #include <limits>
+#include <initializer_list>
 
 template<typename T>
 void swapBits(T& n, unsigned int bit1, unsigned int bit2)
@@ -30,6 +31,17 @@ void safeNegate(T& n)
 }
 
 char my_tolower(char ch);
+
+template<typename T>
+T derefOffsets(void* ptr, std::initializer_list<long long> offsets, long long finalOFfset = 0)
+{
+	byte* addr = static_cast<byte*>(ptr);
+	for (long long offset : offsets)
+	{
+		addr = *(byte**)(addr + offset);
+	}
+	return reinterpret_cast<T>(addr + finalOFfset);
+}
 
 // memory operations
 

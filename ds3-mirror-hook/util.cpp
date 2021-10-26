@@ -21,3 +21,5 @@ void PatchMem(void* instrAddr, void* data, int size)
 	memcpy(instrAddr, data, size);
 	VirtualProtect(instrAddr, size, OldProtection, &OldProtection);
 }
+
+void DetourMidFunction(void* addr, void* trampolineCode);

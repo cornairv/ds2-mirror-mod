@@ -10,6 +10,8 @@ tD3D11CreateDevice oD3D11CreateDevice = D3D11CreateDevice;
 tXInputSetState oXInputSetState = XInputSetState;
 tDirectInput8Create oDirectInput8Create;
 
+extern "C" int asmadd(int a, int b);
+
 bool APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, [[maybe_unused]] LPVOID lpReserved)
 {
     if (ul_reason_for_call == DLL_PROCESS_ATTACH)
