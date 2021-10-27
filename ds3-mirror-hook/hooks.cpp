@@ -12,14 +12,20 @@
 
 #define ATTACH_HOOK(name) CHECK(DetourAttach(&(PVOID&)o##name, hk##name))
 
+extern "C"
+{
+	void hkRenderGlowFilterTrampoline();
+}
+
 void setupHooks()
 {
 	CHECK(DetourTransactionBegin());
 	CHECK(DetourUpdateThread(GetCurrentThread()));
 
 	// rendering
-	ATTACH_HOOK(D3D11CreateDevice);
-	ATTACH_HOOK(RenderGlowFilter);
+	//ATTACH_HOOK(D3D11CreateDevice);
+	//ATTACH_HOOK(RenderGlowFilter);
+	CHECK(InjectCode((void*)0x1401bc3fb, hkRenderGlowFilterTrampoline));
 
 	CHECK(DetourTransactionCommit());
 }

@@ -120,7 +120,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="test.asm">
+    <MASM Include="render.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>

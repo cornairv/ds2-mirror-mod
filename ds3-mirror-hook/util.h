@@ -46,4 +46,5 @@ T derefOffsets(void* ptr, std::initializer_list<long long> offsets, long long fi
 // memory operations
 
 void PatchCmp(void* InstrAddr);
-void PatchMem(void* instrAddr, void* data, int size);
+HRESULT PatchMem(void* instrAddr, void* data, size_t size);
+HRESULT InjectCode(void* hookAddr, void* trampolineCode);

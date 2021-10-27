@@ -5,11 +5,10 @@
 #include "logger.h"
 #include "util.h"
 
-void RenderManager::mirrorScreen(void* unk1)
+void RenderManager::mirrorScreen(ID3D11DeviceContext* ctx)
 {
 
 	// get current context
-	ID3D11DeviceContext* ctx = derefOffsets<ID3D11DeviceContext*>(unk1, { 0x450, 8, 0 });
 	ctx->GetDevice(&d3d11Dev);
 
 	if (!mirror.initialized)
@@ -27,41 +26,8 @@ void RenderManager::mirrorScreen(void* unk1)
 	ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	ctx->IASetInputLayout(mirror.vertexLayout);
 	ctx->IASetVertexBuffers(0, 1, &mirror.vertexBuffer, &mirror.vertexStride, &mirror.vertexOffset);
-	//float color[4] = { 0.f, 0.f, 0.f, 0.f };
-	//ctx->ClearRenderTargetView(mirror.dstView, color);
 	ctx->Draw(mirror.vertexCount, 0);
 	ctx->CopyResource(mirror.srcRenderTexture, mirror.dstRenderTexture);
-}
-
-void RenderManager::modifyPostProcess([[maybe_unused]] void* __this, [[maybe_unused]] void* unk1, [[maybe_unused]] void* unk2)
-{
-	// get AA mode
-	byte* gameData = *pGameData;
-	byte* pcOptionData = *(byte**)(gameData + 0x68);
-	int aaMode = *(int*)(pcOptionData + 0xf0);
-
-	// FXAA adds an extra post process stage, so check if it's enabled
-	int finalPostProcessStage = 0x1e;	//no AA or temporal AA
-	if (aaMode == 1)
-	{
-		finalPostProcessStage = 0x20;	// FXAA
-	}
-	else if (aaMode == 2)
-	{
-		finalPostProcessStage = 0x21;	// FXAA high
-	}
-
-	int postProcessStage = *(int*)((byte*)__this + 0x38);
-	if (postProcessStage == finalPostProcessStage)
-	{
-		// this runs once per frame so update InputManager while we're here
-		InputManager::getInstance().update();
-
-		if (InputManager::getInstance().toggleState)
-		{
-			RenderManager::getInstance().mirrorScreen(unk1);
-		}
-	}
 }
 
 void RenderManager::initResources()
@@ -154,15 +120,10 @@ void RenderManager::initResources()
 void RenderManager::initContext(ID3D11DeviceContext* ctx)
 {
 	ID3D11RenderTargetView* renderTargetView[8] = { 0 };
-	LOG << "OMGetRenderTargets" << LogEndl::INFO;
 
 	ctx->OMGetRenderTargets(8, renderTargetView, nullptr);
-	for (int i = 0; i < 8; i++)
-	{
-		LOG << i << ": " << renderTargetView[i] << LogEndl::INFO;
-	}
+
 	ID3D11Resource* sourceRenderResource;
-	LOG << "GetResource" << LogEndl::INFO;
 	renderTargetView[0]->GetResource(&sourceRenderResource);
 	renderTargetView[0]->Release();
 
@@ -172,8 +133,6 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		// release previous 
 		if (mirror.srcRenderTexture)
 		{
-			LOG << "Release resources" << LogEndl::INFO;
-
 			mirror.srcRenderTexture->Release();
 			mirror.dstRenderTexture->Release();
 			mirror.srcView->Release();
@@ -184,20 +143,8 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 
 		// create render texture for mirroring
 		D3D11_TEXTURE2D_DESC texDesc;
-		//getRenderSize(texDesc.Width, texDesc.Height);
-		texDesc.Width = 1920;
-		texDesc.Height = 1080;
-		texDesc.MipLevels = 1;
-		texDesc.ArraySize = 1;
-		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		texDesc.SampleDesc.Count = 1;
-		texDesc.SampleDesc.Quality = 0;
-		texDesc.Usage = D3D11_USAGE_DEFAULT;
-		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		texDesc.CPUAccessFlags = 0;
-		texDesc.MiscFlags = 0;
+		mirror.srcRenderTexture->GetDesc(&texDesc);
 
-		LOG << "CreateTexture2D" << LogEndl::INFO;
 		CHECK(d3d11Dev->CreateTexture2D(&texDesc, nullptr, &mirror.dstRenderTexture));
 
 		// create render target for texture
@@ -207,7 +154,6 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		rtvDesc.Texture2D.MipSlice = 0;
 		if (mirror.dstRenderTexture)
 		{
-			LOG << "CreateRenderTargetView" << LogEndl::INFO;
 			CHECK(d3d11Dev->CreateRenderTargetView(mirror.dstRenderTexture, &rtvDesc, &mirror.dstView));
 		}
 		else
@@ -222,7 +168,6 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		srvDesc.Texture2D.MipLevels = 1;
 		srvDesc.Texture2D.MostDetailedMip = 0;
 
-		LOG << "CreateShaderResourceView" << LogEndl::INFO;
 		CHECK(d3d11Dev->CreateShaderResourceView(mirror.srcRenderTexture, &srvDesc, &mirror.srcView));
 
 		// reset weapon icon state
@@ -290,13 +235,6 @@ void RenderManager::reset()
 
 ////////// Rendering-related hooks //////////
 
-// intercept the final render pass before UI is drawn and flip the image
-void hkRenderPostProcess(void* __this, void* unk1, void* unk2)
-{
-	oRenderPostProcess(__this, unk1, unk2);
-	RenderManager::getInstance().modifyPostProcess(__this, unk1, unk2);
-}
-
 // modify positions of UI elements
 void hkSetUIRect(void* __this, float* rect)
 {
@@ -308,20 +246,7 @@ void hkSetUIRect(void* __this, float* rect)
 }
 
 
-int glowCount = 0;
-extern "C" void hkRenderGlowFilter([[maybe_unused]] void* __this, void* unk1, [[maybe_unused]] void* unk2)
+extern "C" void hkRenderGlowFilter(ID3D11DeviceContext* ctx)
 {
-	//byte* addr = (byte*)unk1;
-	//addr = *(byte**)(addr + 0x450);
-	//addr = *(byte**)(addr + 8);
-	//addr = *(byte**)addr;
-	//LOG << "Context: " << std::hex << (int*)addr << LogEndl::INFO;
-
-	RenderManager::getInstance().mirrorScreen(unk1);
-	oRenderGlowFilter(__this, unk1, unk2);
-	//ID3D11RenderTargetView* rtv;
-	//ID3D11DeviceContext* ctx = derefOffsets<ID3D11DeviceContext*>(unk1, { 0x450, 8, 0 });
-	//ctx->OMGetRenderTargets(1, &rtv, nullptr);
-	//float color[4] = { (glowCount++ % 100) / 100.f, 0.f, 0.f, 0.f };
-	//ctx->ClearRenderTargetView(rtv, color);
+	RenderManager::getInstance().mirrorScreen(ctx);
 }

@@ -23,8 +23,7 @@ public:
 	void reset();
 
 	void modifyUIRect(void* __this, float* newRect);
-	void modifyPostProcess(void* __this, void* unk1, void* unk2);
-	void mirrorScreen(void* unk1);
+	void mirrorScreen(ID3D11DeviceContext* ctx);
 
 	void getRenderSize(UINT& width, UINT& height);
 
@@ -66,7 +65,6 @@ private:
 	ID3D11DeviceContext* d3d11Ctxt = nullptr;
 };
 
-void hkRenderPostProcess(void* __this, void* unk1, void* unk2);
 void hkSetUIRect(void* __this, float* rect);
 
-extern "C" void hkRenderGlowFilter(void* __this, void* unk1, void* unk2);
+extern "C" void hkRenderGlowFilter(ID3D11DeviceContext* ctx);
