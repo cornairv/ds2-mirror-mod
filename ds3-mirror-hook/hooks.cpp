@@ -27,7 +27,7 @@ void setupHooks()
 	//ATTACH_HOOK(D3D11CreateDevice);
 	//ATTACH_HOOK(RenderGlowFilter);
 	CHECK(InjectCode(midRenderGlowFilter, hkRenderGlowFilterTrampoline));
-	//CHECK(InjectCode(midEndPostEffectScene, hkEndPostEffectSceneTrampoline));
+	CHECK(InjectCode(midEndPostEffectScene, hkEndPostEffectSceneTrampoline));
 
 	//ATTACH_HOOK(GetMatrix);
 	//ATTACH_HOOK(GetMatrixInverse);

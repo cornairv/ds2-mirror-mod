@@ -21,8 +21,6 @@ public:
 
 	RenderManager() { }
 
-	void reset();
-
 	// screen mirroring
 	void mirrorScreen(ID3D11DeviceContext* ctx);
 	void initResources(ID3D11Device* d3d11Dev);
@@ -44,6 +42,7 @@ public:
 	void setMovieInstance(void* movieDef, void* movieInstance);
 	void modifyDisplayInfo(void* objInterface, double*& displayInfo);
 	bool shouldForceInitFirstFrame(void* movieDef);
+	void setInvertWeaponSwitch(bool swap);
 
 private:
 	struct gfx_resources

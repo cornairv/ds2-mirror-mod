@@ -10,6 +10,8 @@
 
 using Microsoft::WRL::ComPtr;
 
+// mirror functions
+
 void RenderManager::onRenderGlowFilter(ID3D11DeviceContext* ctx)
 {
 	mirrorScreen(ctx);
@@ -19,6 +21,7 @@ void RenderManager::onRenderGlowFilter(ID3D11DeviceContext* ctx)
 // if FPS is low, DS3 skips some render passes so perform mirroring earlier
 void RenderManager::onEndPostEffectScene(ID3D11DeviceContext* ctx)
 {
+	InputManager::getInstance().update();
 	if (!mirror.didRenderGlowFilter)
 	{
 		mirrorScreen(ctx);
@@ -178,10 +181,8 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx, ID3D11Device* d3d11Dev
 	}
 }
 
-void RenderManager::reset()
-{
 
-}
+// HUD functions
 
 void RenderManager::setMovieDef(void* movieDef)
 {
@@ -205,16 +206,32 @@ void RenderManager::setMovieInstance(void* movieDef, void* movieInstance)
 			CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, ("RemotePCTag" + std::to_string(i)).c_str(), &gfx.remotePCTag[i], true));
 		}
 
-		if (config.invertWeaponSwitch)
+		CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, "PlayerHUD", &gfx.playerHud, true));
+		CHECK_TRUE(oValue_GetMember(gfx.playerHud.objInterface, gfx.playerHud.pData, "ItemPanel", &gfx.itemPanel, true));
+		CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Left", &gfx.leftWeapon, true));
+		CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Right", &gfx.rightWeapon, true));
+		CHECK_TRUE(oValue_GetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.leftWeaponDisplayInfo));
+		CHECK_TRUE(oValue_GetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.rightWeaponDisplayInfo));
+		if (config.invertWeaponSwitch && InputManager::getInstance().toggleState)
 		{
-			CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, "PlayerHUD", &gfx.playerHud, true));
-			CHECK_TRUE(oValue_GetMember(gfx.playerHud.objInterface, gfx.playerHud.pData, "ItemPanel", &gfx.itemPanel, true));
-			CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Left", &gfx.leftWeapon, true));
-			CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Right", &gfx.rightWeapon, true));
-			CHECK_TRUE(oValue_GetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.leftWeaponDisplayInfo));
-			CHECK_TRUE(oValue_GetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.rightWeaponDisplayInfo));
+			setInvertWeaponSwitch(true);
+		}
+	}
+}
+
+void RenderManager::setInvertWeaponSwitch(bool swap)
+{
+	if (gfx.leftWeapon.objInterface)
+	{
+		if (swap)
+		{
 			CHECK_TRUE(oValue_SetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.rightWeaponDisplayInfo));
 			CHECK_TRUE(oValue_SetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.leftWeaponDisplayInfo));
+		}
+		else
+		{
+			CHECK_TRUE(oValue_SetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.leftWeaponDisplayInfo));
+			CHECK_TRUE(oValue_SetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.rightWeaponDisplayInfo));
 		}
 	}
 }
@@ -223,11 +240,17 @@ void RenderManager::modifyDisplayInfo(void* pData, double*& displayInfo)
 {
 	if (pData == gfx.leftWeapon.pData)
 	{
-		displayInfo = gfx.leftWeaponDisplayInfo;
+		if (config.invertWeaponSwitch && InputManager::getInstance().toggleState)
+		{
+			displayInfo = gfx.leftWeaponDisplayInfo;
+		}
 	}
 	else if (pData == gfx.rightWeapon.pData)
 	{
-		displayInfo = gfx.rightWeaponDisplayInfo;
+		if (config.invertWeaponSwitch && InputManager::getInstance().toggleState)
+		{
+			displayInfo = gfx.rightWeaponDisplayInfo;
+		}
 	}
 	else if (pData == gfx.lockOn.pData)
 	{

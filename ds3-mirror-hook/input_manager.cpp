@@ -30,9 +30,12 @@ void InputManager::update()
 		if (toggleKey.pressed)
 		{
 			toggleState = !toggleState;
+			if (config.invertWeaponSwitch)
+			{
+				RenderManager::getInstance().setInvertWeaponSwitch(toggleState);
+			}
 			if (!keyOptionMenuOpen)
 			{
-				swapInputBindings();
 			}
 		}
 	}
