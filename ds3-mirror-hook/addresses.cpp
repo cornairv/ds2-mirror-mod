@@ -45,3 +45,6 @@ ADDRESS(tMovieRoot_GetVariable, oMovieRoot_GetVariable, 0x141ef5300);
 ADDRESS(tValue_GetMember, oValue_GetMember, 0x141eef440);
 ADDRESS(tValue_SetDisplayInfo, oValue_SetDisplayInfo, 0x141f13870);
 ADDRESS(tValue_GetDisplayInfo, oValue_GetDisplayInfo, 0x141eedd90);
+
+ADDRESS(void*, midRenderGlowFilter, 0x1401bc3fb);
+ADDRESS(void*, midEndPostEffectScene, 0x1417137b1);

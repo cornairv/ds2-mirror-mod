@@ -68,3 +68,6 @@ extern tValue_SetDisplayInfo oValue_SetDisplayInfo;
 
 typedef bool (*tValue_GetDisplayInfo)(void* __this, void* pData, double* matrix);
 extern tValue_GetDisplayInfo oValue_GetDisplayInfo;
+
+extern void* midRenderGlowFilter;
+extern void* midEndPostEffectScene;

@@ -1,4 +1,5 @@
 EXTERN hkRenderGlowFilter: PROC
+EXTERN hkEndPostEffectScene: PROC
 
 _TEXT SEGMENT
 
@@ -28,6 +29,32 @@ hkRenderGlowFilterTrampoline PROC
 	pop rax
 	nop
 hkRenderGlowFilterTrampoline ENDP
+
+hkEndPostEffectSceneTrampoline PROC
+	push rax
+	push rcx
+	push rdx
+	push r8
+	push r9
+	push r10
+	push r11
+	sub rsp, 40
+
+	mov rcx, qword ptr [rsi + 28h]
+	mov rcx, qword ptr [rcx + 10h]
+	mov rax, hkEndPostEffectScene
+	call rax
+
+	add rsp, 40
+	pop r11
+	pop r10
+	pop r9
+	pop r8
+	pop rdx
+	pop rcx
+	pop rax
+	nop
+hkEndPostEffectSceneTrampoline ENDP
 
 _TEXT ENDS
 

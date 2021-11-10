@@ -10,6 +10,22 @@
 
 using Microsoft::WRL::ComPtr;
 
+void RenderManager::onRenderGlowFilter(ID3D11DeviceContext* ctx)
+{
+	mirrorScreen(ctx);
+	mirror.didRenderGlowFilter = true;
+}
+
+// if FPS is low, DS3 skips some render passes so perform mirroring earlier
+void RenderManager::onEndPostEffectScene(ID3D11DeviceContext* ctx)
+{
+	if (!mirror.didRenderGlowFilter)
+	{
+		mirrorScreen(ctx);
+	}
+	mirror.didRenderGlowFilter = false;
+}
+
 void RenderManager::mirrorScreen(ID3D11DeviceContext* ctx)
 {
 
@@ -23,17 +39,20 @@ void RenderManager::mirrorScreen(ID3D11DeviceContext* ctx)
 	}
 	initContext(ctx, d3d11Dev.Get());
 
-	ctx->VSSetShader(mirror.vertexShader, nullptr, 0);
-	ctx->PSSetShader(mirror.pixelShader, nullptr, 0);
-	ctx->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-	ctx->OMSetRenderTargets(1, &mirror.dstView, nullptr);
-	ctx->PSSetShaderResources(0, 1, &mirror.srcView);
-	ctx->PSSetSamplers(0, 1, &mirror.samplerState);
-	ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	ctx->IASetInputLayout(mirror.vertexLayout);
-	ctx->IASetVertexBuffers(0, 1, &mirror.vertexBuffer, &mirror.vertexStride, &mirror.vertexOffset);
-	ctx->Draw(mirror.vertexCount, 0);
-	ctx->CopyResource(mirror.srcRenderTexture, mirror.dstRenderTexture);
+	if (InputManager::getInstance().toggleState)
+	{
+		ctx->VSSetShader(mirror.vertexShader, nullptr, 0);
+		ctx->PSSetShader(mirror.pixelShader, nullptr, 0);
+		ctx->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		ctx->OMSetRenderTargets(1, &mirror.dstView, nullptr);
+		ctx->PSSetShaderResources(0, 1, &mirror.srcView);
+		ctx->PSSetSamplers(0, 1, &mirror.samplerState);
+		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		ctx->IASetInputLayout(mirror.vertexLayout);
+		ctx->IASetVertexBuffers(0, 1, &mirror.vertexBuffer, &mirror.vertexStride, &mirror.vertexOffset);
+		ctx->Draw(mirror.vertexCount, 0);
+		ctx->CopyResource(mirror.srcRenderTexture, mirror.dstRenderTexture);
+	}
 }
 
 void RenderManager::initResources(ID3D11Device* d3d11Dev)
@@ -205,14 +224,17 @@ void RenderManager::setMovieInstance(void* movieDef, void* movieInstance)
 			CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, ("RemotePCTag" + std::to_string(i)).c_str(), &gfx.remotePCTag[i], true));
 		}
 
-		CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, "PlayerHUD", &gfx.playerHud, true));
-		CHECK_TRUE(oValue_GetMember(gfx.playerHud.objInterface, gfx.playerHud.pData, "ItemPanel", &gfx.itemPanel, true));
-		CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Left", &gfx.leftWeapon, true));
-		CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Right", &gfx.rightWeapon, true));
-		CHECK_TRUE(oValue_GetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.leftWeaponDisplayInfo));
-		CHECK_TRUE(oValue_GetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.rightWeaponDisplayInfo));
-		CHECK_TRUE(oValue_SetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.rightWeaponDisplayInfo));
-		CHECK_TRUE(oValue_SetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.leftWeaponDisplayInfo));
+		if (config.invertWeaponSwitch)
+		{
+			CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, "PlayerHUD", &gfx.playerHud, true));
+			CHECK_TRUE(oValue_GetMember(gfx.playerHud.objInterface, gfx.playerHud.pData, "ItemPanel", &gfx.itemPanel, true));
+			CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Left", &gfx.leftWeapon, true));
+			CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Right", &gfx.rightWeapon, true));
+			CHECK_TRUE(oValue_GetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.leftWeaponDisplayInfo));
+			CHECK_TRUE(oValue_GetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.rightWeaponDisplayInfo));
+			CHECK_TRUE(oValue_SetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.rightWeaponDisplayInfo));
+			CHECK_TRUE(oValue_SetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.leftWeaponDisplayInfo));
+		}
 	}
 }
 
@@ -258,7 +280,12 @@ bool RenderManager::shouldForceInitFirstFrame(void* movieDef)
 
 extern "C" void hkRenderGlowFilter(ID3D11DeviceContext* ctx)
 {
-	RenderManager::getInstance().mirrorScreen(ctx);
+	RenderManager::getInstance().onRenderGlowFilter(ctx);
+}
+
+extern "C" void hkEndPostEffectScene(ID3D11DeviceContext* ctx)
+{
+	RenderManager::getInstance().onEndPostEffectScene(ctx);
 }
 
 void* hkLoader_CreateMovie(void* __this, char* filename, unsigned int loadConstants, size_t memoryArena)

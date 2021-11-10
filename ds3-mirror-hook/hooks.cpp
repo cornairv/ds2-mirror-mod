@@ -15,6 +15,7 @@
 extern "C"
 {
 	void hkRenderGlowFilterTrampoline();
+	void hkEndPostEffectSceneTrampoline();
 }
 
 void setupHooks()
@@ -25,7 +26,9 @@ void setupHooks()
 	// rendering
 	//ATTACH_HOOK(D3D11CreateDevice);
 	//ATTACH_HOOK(RenderGlowFilter);
-	CHECK(InjectCode((void*)0x1401bc3fb, hkRenderGlowFilterTrampoline));
+	CHECK(InjectCode(midRenderGlowFilter, hkRenderGlowFilterTrampoline));
+	//CHECK(InjectCode(midEndPostEffectScene, hkEndPostEffectSceneTrampoline));
+
 	//ATTACH_HOOK(GetMatrix);
 	//ATTACH_HOOK(GetMatrixInverse);
 	ATTACH_HOOK(Loader_CreateMovie);

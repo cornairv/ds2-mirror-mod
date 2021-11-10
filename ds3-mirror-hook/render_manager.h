@@ -26,6 +26,8 @@ public:
 	void mirrorScreen(ID3D11DeviceContext* ctx);
 	void initResources(ID3D11Device* d3d11Dev);
 	void initContext(ID3D11DeviceContext* ctx, ID3D11Device* d3d11Dev);
+	void onRenderGlowFilter(ID3D11DeviceContext* ctx);
+	void onEndPostEffectScene(ID3D11DeviceContext* ctx);
 
 	// HUD
 	struct GfxValue
@@ -76,10 +78,15 @@ private:
 		ID3D11RenderTargetView* dstView = nullptr;
 
 		bool initialized = false;
+		bool didRenderGlowFilter = true;
 	} mirror;
 };
 
-extern "C" void hkRenderGlowFilter(ID3D11DeviceContext* ctx);
+extern "C"
+{
+	void hkRenderGlowFilter(ID3D11DeviceContext* ctx);
+	void hkEndPostEffectScene(ID3D11DeviceContext* ctx);
+}
 
 void* hkLoader_CreateMovie(void* __this, char* filename, unsigned int loadConstants, size_t memoryArena);
 void* hkMovieDef_CreateInstance(void* __this, void* memContext, bool initFirstFrame, void* actionControl, void* queue);
