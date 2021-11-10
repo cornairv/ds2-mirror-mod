@@ -26,6 +26,14 @@ void setupHooks()
 	//ATTACH_HOOK(D3D11CreateDevice);
 	//ATTACH_HOOK(RenderGlowFilter);
 	CHECK(InjectCode((void*)0x1401bc3fb, hkRenderGlowFilterTrampoline));
+	//ATTACH_HOOK(GetMatrix);
+	//ATTACH_HOOK(GetMatrixInverse);
+	ATTACH_HOOK(Loader_CreateMovie);
+	ATTACH_HOOK(MovieDef_CreateInstance);
+	//ATTACH_HOOK(MovieRoot_GetVariable);
+	//ATTACH_HOOK(Value_GetMember);
+	ATTACH_HOOK(Value_SetDisplayInfo);
+	//ATTACH_HOOK(Value_GetDisplayInfo);
 
 	CHECK(DetourTransactionCommit());
 }

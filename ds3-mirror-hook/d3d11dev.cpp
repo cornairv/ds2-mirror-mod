@@ -39,7 +39,7 @@ HRESULT STDMETHODCALLTYPE hkID3D11Device::CreateTexture2D(const D3D11_TEXTURE2D_
 {
     LOG_FUNCTION;
     HRESULT hr = d3d11Dev->CreateTexture2D(pDesc, pInitialData, ppTexture2D);
-    RenderManager::getInstance().textureInfo[*ppTexture2D] = *pDesc;
+    //RenderManager::getInstance().textureInfo[*ppTexture2D] = *pDesc;
     return hr;
 }
 HRESULT STDMETHODCALLTYPE hkID3D11Device::CreateTexture3D(const D3D11_TEXTURE3D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture3D** ppTexture3D)

@@ -37,3 +37,11 @@ long long hashCheckCmps[] =
 
 
 ADDRESS(tRenderGlowFilter, oRenderGlowFilter, 0x1401bb790);
+ADDRESS(tGetMatrix, oGetMatrix, 0x141bc22d0);
+ADDRESS(tGetMatrix, oGetMatrixInverse, 0x141bc2260);
+ADDRESS(tLoader_CreateMovie, oLoader_CreateMovie, 0x141ba8200);
+ADDRESS(tMovieDef_CreateInstance, oMovieDef_CreateInstance, 0x141bded00);
+ADDRESS(tMovieRoot_GetVariable, oMovieRoot_GetVariable, 0x141ef5300);
+ADDRESS(tValue_GetMember, oValue_GetMember, 0x141eef440);
+ADDRESS(tValue_SetDisplayInfo, oValue_SetDisplayInfo, 0x141f13870);
+ADDRESS(tValue_GetDisplayInfo, oValue_GetDisplayInfo, 0x141eedd90);

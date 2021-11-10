@@ -4,18 +4,24 @@
 #include "addresses.h"
 #include "logger.h"
 #include "util.h"
+#include <vector>
+#include <set>
+#include <wrl/client.h>
+
+using Microsoft::WRL::ComPtr;
 
 void RenderManager::mirrorScreen(ID3D11DeviceContext* ctx)
 {
 
 	// get current context
+	ComPtr<ID3D11Device> d3d11Dev;
 	ctx->GetDevice(&d3d11Dev);
 
 	if (!mirror.initialized)
 	{
-		initResources();
+		initResources(d3d11Dev.Get());
 	}
-	initContext(ctx);
+	initContext(ctx, d3d11Dev.Get());
 
 	ctx->VSSetShader(mirror.vertexShader, nullptr, 0);
 	ctx->PSSetShader(mirror.pixelShader, nullptr, 0);
@@ -30,7 +36,7 @@ void RenderManager::mirrorScreen(ID3D11DeviceContext* ctx)
 	ctx->CopyResource(mirror.srcRenderTexture, mirror.dstRenderTexture);
 }
 
-void RenderManager::initResources()
+void RenderManager::initResources(ID3D11Device* d3d11Dev)
 {
 	HRESULT hr;
 
@@ -117,7 +123,7 @@ void RenderManager::initResources()
 	mirror.initialized = true;
 }
 
-void RenderManager::initContext(ID3D11DeviceContext* ctx)
+void RenderManager::initContext(ID3D11DeviceContext* ctx, ID3D11Device* d3d11Dev)
 {
 	ID3D11RenderTargetView* renderTargetView[8] = { 0 };
 
@@ -169,61 +175,6 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx)
 		srvDesc.Texture2D.MostDetailedMip = 0;
 
 		CHECK(d3d11Dev->CreateShaderResourceView(mirror.srcRenderTexture, &srvDesc, &mirror.srcView));
-
-		// reset weapon icon state
-		rightWeaponIconObj = nullptr;
-		leftWeaponIconObj = nullptr;
-	}
-}
-
-void RenderManager::getRenderSize(UINT& width, UINT& height)
-{
-	UINT* dimensions = reinterpret_cast<UINT*>(*pFrpgWindow + 0x34);
-	width = dimensions[0];
-	height = dimensions[1];
-}
-
-void RenderManager::modifyUIRect(void* __this, float* newRect)
-{
-	void* vtable = *(void**)__this;
-	int rectOffset = 0xC4;
-	int idOffset = 0x208;
-	if (vtable == vtWeaponSwitchIcons)
-	{
-		if (config.invertWeaponSwitch)
-		{
-			byte* bytes = (byte*)__this;
-			int id = *(int*)(bytes + idOffset);
-			float* rect = (float*)(bytes + rectOffset);
-			if (id == 2)		// right weapon icon
-			{
-				rightWeaponIconObj = __this;
-				memcpy_s(rightWeaponIconCoords, sizeof(float) * 4, newRect, sizeof(float) * 4);
-				if (leftWeaponIconObj)
-				{
-					memcpy_s(rect, sizeof(float) * 4, leftWeaponIconCoords, sizeof(float) * 4);
-				}
-			}
-			else if (id == 3)	// left weapon icon
-			{
-				leftWeaponIconObj = __this;
-				memcpy_s(leftWeaponIconCoords, sizeof(float) * 4, newRect, sizeof(float) * 4);
-				if (rightWeaponIconObj)
-				{
-					memcpy_s(rect, sizeof(float) * 4, rightWeaponIconCoords, sizeof(float) * 4);
-				}
-			}
-		}
-	}
-	else if (vtable == vtEnemyGauge || vtable == vtPhantomGauge || vtable == vtLockonTarget)
-	{
-		byte* bytes = (byte*)__this;
-		float* rect = (float*)(bytes + rectOffset);
-		UINT width, height;
-		getRenderSize(width, height);
-		rect[0] = width - rect[0];
-		rect[2] = width - rect[2];
-		std::swap(rect[0], rect[2]);
 	}
 }
 
@@ -232,21 +183,115 @@ void RenderManager::reset()
 
 }
 
-
-////////// Rendering-related hooks //////////
-
-// modify positions of UI elements
-void hkSetUIRect(void* __this, float* rect)
+void RenderManager::setMovieDef(void* movieDef)
 {
-	oSetUIRect(__this, rect);
-	if (InputManager::getInstance().toggleState)
+	gfx.movieDef = movieDef;
+}
+
+void RenderManager::setMovieInstance(void* movieDef, void* movieInstance)
+{
+	if (movieDef == gfx.movieDef)
 	{
-		RenderManager::getInstance().modifyUIRect(__this, rect);
+		gfx.movieRoot = static_cast<void**>(movieInstance)[3];
+		CHECK_TRUE(oMovieRoot_GetVariable(gfx.movieRoot, &gfx.hudRoot, "_level0"));
+
+		CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, "LockOn", &gfx.lockOn, true));
+		for (int i = 0; i < 8; i++)
+		{
+			CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, ("EnemyTag" + std::to_string(i)).c_str(), &gfx.enemyTag[i], true));
+		}
+		for (int i = 0; i < 6; i++)
+		{
+			CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, ("RemotePCTag" + std::to_string(i)).c_str(), &gfx.remotePCTag[i], true));
+		}
+
+		CHECK_TRUE(oValue_GetMember(gfx.hudRoot.objInterface, gfx.hudRoot.pData, "PlayerHUD", &gfx.playerHud, true));
+		CHECK_TRUE(oValue_GetMember(gfx.playerHud.objInterface, gfx.playerHud.pData, "ItemPanel", &gfx.itemPanel, true));
+		CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Left", &gfx.leftWeapon, true));
+		CHECK_TRUE(oValue_GetMember(gfx.itemPanel.objInterface, gfx.itemPanel.pData, "Item_Right", &gfx.rightWeapon, true));
+		CHECK_TRUE(oValue_GetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.leftWeaponDisplayInfo));
+		CHECK_TRUE(oValue_GetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.rightWeaponDisplayInfo));
+		CHECK_TRUE(oValue_SetDisplayInfo(gfx.leftWeapon.objInterface, gfx.leftWeapon.pData, gfx.rightWeaponDisplayInfo));
+		CHECK_TRUE(oValue_SetDisplayInfo(gfx.rightWeapon.objInterface, gfx.rightWeapon.pData, gfx.leftWeaponDisplayInfo));
 	}
 }
 
+void RenderManager::modifyDisplayInfo(void* pData, double*& displayInfo)
+{
+	if (pData == gfx.leftWeapon.pData)
+	{
+		displayInfo = gfx.leftWeaponDisplayInfo;
+	}
+	else if (pData == gfx.rightWeapon.pData)
+	{
+		displayInfo = gfx.rightWeaponDisplayInfo;
+	}
+	else if (pData == gfx.lockOn.pData)
+	{
+		displayInfo[0] = 1920 - displayInfo[0];
+	}
+	else
+	{
+		for (int i = 0; i < 8; i++)
+		{
+			if (pData == gfx.enemyTag[i].pData)
+			{
+				displayInfo[0] = 1920 - displayInfo[0];
+			}
+		}
+		for (int i = 0; i < 6; i++)
+		{
+			if (pData == gfx.remotePCTag[i].pData && displayInfo[0] != 200)
+			{
+				displayInfo[0] = 1920 - displayInfo[0];
+			}
+		}
+	}
+}
+
+bool RenderManager::shouldForceInitFirstFrame(void* movieDef)
+{
+	return movieDef && movieDef == gfx.movieDef;
+}
+
+////////// Rendering-related hooks //////////
 
 extern "C" void hkRenderGlowFilter(ID3D11DeviceContext* ctx)
 {
 	RenderManager::getInstance().mirrorScreen(ctx);
+}
+
+void* hkLoader_CreateMovie(void* __this, char* filename, unsigned int loadConstants, size_t memoryArena)
+{
+	void* ret = oLoader_CreateMovie(__this, filename, loadConstants, memoryArena);
+
+	if (ret)
+	{
+		std::string filenameStr(filename);
+		if (filenameStr == "data1:/menu/01_000_fe.gfx")
+		{
+			RenderManager::getInstance().setMovieDef(ret);
+		}
+	}
+
+	return ret;
+}
+
+void* hkMovieDef_CreateInstance(void* __this, void* memContext, bool initFirstFrame, void* actionControl, void* queue)
+{
+	initFirstFrame = initFirstFrame || RenderManager::getInstance().shouldForceInitFirstFrame(__this);
+	void* ret = oMovieDef_CreateInstance(__this, memContext, initFirstFrame, actionControl, queue);
+
+	if (ret)
+	{
+		RenderManager::getInstance().setMovieInstance(__this, ret);
+	}
+
+	return ret;
+}
+
+bool hkValue_SetDisplayInfo(void* __this, void* pData, double* displayInfo)
+{
+	RenderManager::getInstance().modifyDisplayInfo(pData, displayInfo);
+	return oValue_SetDisplayInfo(__this, pData, displayInfo);
 }

@@ -81,5 +81,6 @@ Logger& Logger::operator<< (LogEndl s)
 
 void __declspec(noinline) MyDebugBreak()
 {
-	LOG << "debug" << LogEndl::ENDL;
+	static volatile int i = 0; // prevent function from getting optimized out
+	i++;
 }

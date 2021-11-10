@@ -41,9 +41,6 @@ HRESULT WINAPI hkD3D11CreateDevice(
         LOG << "Created device: " << std::hex << hkD3d11Dev << LogEndl::INFO;
         LOG << "Created context: " << std::hex << hkD3d11Ctxt << LogEndl::INFO;
 
-        RenderManager::getInstance().setD3d11Dev(d3d11Dev);
-        RenderManager::getInstance().setD3d11Ctxt(d3d11Ctxt);
-
         if (ppImmediateContext)
         {
             *ppImmediateContext = hkD3d11Ctxt;

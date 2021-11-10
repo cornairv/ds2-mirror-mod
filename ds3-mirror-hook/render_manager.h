@@ -22,20 +22,42 @@ public:
 
 	void reset();
 
-	void modifyUIRect(void* __this, float* newRect);
+	// screen mirroring
 	void mirrorScreen(ID3D11DeviceContext* ctx);
+	void initResources(ID3D11Device* d3d11Dev);
+	void initContext(ID3D11DeviceContext* ctx, ID3D11Device* d3d11Dev);
 
-	void getRenderSize(UINT& width, UINT& height);
-
-	void setD3d11Dev(ID3D11Device* dev) { d3d11Dev = dev; }
-	void setD3d11Ctxt(ID3D11DeviceContext* ctxt) { d3d11Ctxt = ctxt; }
-
-	void initResources();
-	void initContext(ID3D11DeviceContext* ctx);
-
-	std::map<ID3D11Texture2D*, D3D11_TEXTURE2D_DESC> textureInfo;
+	// HUD
+	struct GfxValue
+	{
+		void* unk1;
+		void* unk2;
+		void* objInterface;
+		void* unk3;
+		void* pData;
+		void* unk5;
+	};
+	void setMovieDef(void* movieDef);
+	void setMovieInstance(void* movieDef, void* movieInstance);
+	void modifyDisplayInfo(void* objInterface, double*& displayInfo);
+	bool shouldForceInitFirstFrame(void* movieDef);
 
 private:
+	struct gfx_resources
+	{
+		GfxValue hudRoot = {};
+		GfxValue playerHud = {};
+		GfxValue itemPanel = {};
+		GfxValue lockOn = {};
+		GfxValue enemyTag[8] = {{}};
+		GfxValue remotePCTag[6] = {{}};
+		GfxValue leftWeapon = {};
+		GfxValue rightWeapon = {};
+		double leftWeaponDisplayInfo[27];
+		double rightWeaponDisplayInfo[27];
+		void* movieDef = nullptr;
+		void* movieRoot = nullptr;
+	} gfx;
 
 	struct mirror_resources
 	{
@@ -55,16 +77,10 @@ private:
 
 		bool initialized = false;
 	} mirror;
-
-	void* leftWeaponIconObj = nullptr;
-	void* rightWeaponIconObj = nullptr;
-	float leftWeaponIconCoords[4] = {};
-	float rightWeaponIconCoords[4] = {};
-
-	ID3D11Device* d3d11Dev = nullptr;
-	ID3D11DeviceContext* d3d11Ctxt = nullptr;
 };
 
-void hkSetUIRect(void* __this, float* rect);
-
 extern "C" void hkRenderGlowFilter(ID3D11DeviceContext* ctx);
+
+void* hkLoader_CreateMovie(void* __this, char* filename, unsigned int loadConstants, size_t memoryArena);
+void* hkMovieDef_CreateInstance(void* __this, void* memContext, bool initFirstFrame, void* actionControl, void* queue);
+bool hkValue_SetDisplayInfo(void* __this, void* pData, double* displayInfo);
