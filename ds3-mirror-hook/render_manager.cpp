@@ -41,17 +41,17 @@ void RenderManager::mirrorScreen(ID3D11DeviceContext* ctx)
 
 	if (InputManager::getInstance().toggleState)
 	{
-		ctx->VSSetShader(mirror.vertexShader, nullptr, 0);
-		ctx->PSSetShader(mirror.pixelShader, nullptr, 0);
+		ctx->VSSetShader(mirror.vertexShader.Get(), nullptr, 0);
+		ctx->PSSetShader(mirror.pixelShader.Get(), nullptr, 0);
 		ctx->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-		ctx->OMSetRenderTargets(1, &mirror.dstView, nullptr);
-		ctx->PSSetShaderResources(0, 1, &mirror.srcView);
-		ctx->PSSetSamplers(0, 1, &mirror.samplerState);
+		ctx->OMSetRenderTargets(1, mirror.dstView.GetAddressOf(), nullptr);
+		ctx->PSSetShaderResources(0, 1, mirror.srcView.GetAddressOf());
+		ctx->PSSetSamplers(0, 1, mirror.samplerState.GetAddressOf());
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ctx->IASetInputLayout(mirror.vertexLayout);
-		ctx->IASetVertexBuffers(0, 1, &mirror.vertexBuffer, &mirror.vertexStride, &mirror.vertexOffset);
+		ctx->IASetInputLayout(mirror.vertexLayout.Get());
+		ctx->IASetVertexBuffers(0, 1, mirror.vertexBuffer.GetAddressOf(), &mirror.vertexStride, &mirror.vertexOffset);
 		ctx->Draw(mirror.vertexCount, 0);
-		ctx->CopyResource(mirror.srcRenderTexture, mirror.dstRenderTexture);
+		ctx->CopyResource(mirror.srcRenderTexture.Get(), mirror.dstRenderTexture.Get());
 	}
 }
 
@@ -60,8 +60,8 @@ void RenderManager::initResources(ID3D11Device* d3d11Dev)
 	HRESULT hr;
 
 	// vertex buffer
-	ID3DBlob* vsBlob;
-	ID3DBlob* vsError;
+	ComPtr<ID3DBlob> vsBlob;
+	ComPtr<ID3DBlob> vsError;
 	hr = D3DCompileFromFile(L"dsmirror\\mirror.hlsl", nullptr, nullptr, "vs_main", "vs_5_0",
 		D3DCOMPILE_ENABLE_STRICTNESS, 0, &vsBlob, &vsError);
 	if (hr != 0)
@@ -71,8 +71,8 @@ void RenderManager::initResources(ID3D11Device* d3d11Dev)
 	CHECK(d3d11Dev->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &mirror.vertexShader));
 
 	// pixel shader
-	ID3DBlob* psBlob;
-	ID3DBlob* psError;
+	ComPtr<ID3DBlob> psBlob;
+	ComPtr<ID3DBlob> psError;
 	hr = D3DCompileFromFile(L"dsmirror\\mirror.hlsl", nullptr, nullptr, "ps_main", "ps_5_0",
 		D3DCOMPILE_ENABLE_STRICTNESS, 0, &psBlob, &psError);
 	if (hr != 0)
@@ -144,27 +144,15 @@ void RenderManager::initResources(ID3D11Device* d3d11Dev)
 
 void RenderManager::initContext(ID3D11DeviceContext* ctx, ID3D11Device* d3d11Dev)
 {
-	ID3D11RenderTargetView* renderTargetView[8] = { 0 };
-
-	ctx->OMGetRenderTargets(8, renderTargetView, nullptr);
-
-	ID3D11Resource* sourceRenderResource;
-	renderTargetView[0]->GetResource(&sourceRenderResource);
-	renderTargetView[0]->Release();
+	ComPtr<ID3D11RenderTargetView> renderTargetView;
+	ctx->OMGetRenderTargets(1, &renderTargetView, nullptr);
+	ComPtr<ID3D11Resource> sourceRenderResource;
+	renderTargetView->GetResource(&sourceRenderResource);
 
 	// if the screen size changed, create resources again
 	if (mirror.srcRenderTexture != sourceRenderResource)
 	{
-		// release previous 
-		if (mirror.srcRenderTexture)
-		{
-			mirror.srcRenderTexture->Release();
-			mirror.dstRenderTexture->Release();
-			mirror.srcView->Release();
-			mirror.dstView->Release();
-		}
-
-		mirror.srcRenderTexture = (ID3D11Texture2D*)sourceRenderResource;
+		CHECK(sourceRenderResource.As<ID3D11Texture2D>(&mirror.srcRenderTexture));
 
 		// create render texture for mirroring
 		D3D11_TEXTURE2D_DESC texDesc;
@@ -177,14 +165,7 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx, ID3D11Device* d3d11Dev
 		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		rtvDesc.Texture2D.MipSlice = 0;
-		if (mirror.dstRenderTexture)
-		{
-			CHECK(d3d11Dev->CreateRenderTargetView(mirror.dstRenderTexture, &rtvDesc, &mirror.dstView));
-		}
-		else
-		{
-			LOG << __FUNCTION__ << " mirrorRenderTexture is null" << LogEndl::ERRO;
-		}
+		CHECK(d3d11Dev->CreateRenderTargetView(mirror.dstRenderTexture.Get(), &rtvDesc, &mirror.dstView));
 
 		// create shader resource from original render texture
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -193,7 +174,7 @@ void RenderManager::initContext(ID3D11DeviceContext* ctx, ID3D11Device* d3d11Dev
 		srvDesc.Texture2D.MipLevels = 1;
 		srvDesc.Texture2D.MostDetailedMip = 0;
 
-		CHECK(d3d11Dev->CreateShaderResourceView(mirror.srcRenderTexture, &srvDesc, &mirror.srcView));
+		CHECK(d3d11Dev->CreateShaderResourceView(mirror.srcRenderTexture.Get(), &srvDesc, &mirror.srcView));
 	}
 }
 

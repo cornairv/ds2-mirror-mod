@@ -5,6 +5,7 @@
 #include <d3dcompiler.h>
 #include <map>
 #include <thread>
+#include <wrl/client.h>
 
 class RenderManager
 {
@@ -63,19 +64,19 @@ private:
 
 	struct mirror_resources
 	{
-		ID3D11VertexShader* vertexShader = nullptr;
-		ID3D11PixelShader* pixelShader = nullptr;
-		ID3D11SamplerState* samplerState = nullptr;
-		ID3D11Buffer* vertexBuffer = nullptr;
-		ID3D11InputLayout* vertexLayout = nullptr;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11InputLayout> vertexLayout;
 		UINT vertexStride = 0;
 		UINT vertexOffset = 0;
 		UINT vertexCount = 3;
 
-		ID3D11Texture2D* srcRenderTexture = nullptr;
-		ID3D11Texture2D* dstRenderTexture = nullptr;
-		ID3D11ShaderResourceView* srcView = nullptr;
-		ID3D11RenderTargetView* dstView = nullptr;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> srcRenderTexture;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> dstRenderTexture;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srcView;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> dstView;
 
 		bool initialized = false;
 		bool didRenderGlowFilter = true;
