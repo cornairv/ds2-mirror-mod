@@ -69,5 +69,31 @@ extern tValue_SetDisplayInfo oValue_SetDisplayInfo;
 typedef bool (*tValue_GetDisplayInfo)(void* __this, void* pData, double* matrix);
 extern tValue_GetDisplayInfo oValue_GetDisplayInfo;
 
+typedef unsigned long long (*tApplyInputSettings)(void* __this, unsigned int unk);
+extern tApplyInputSettings oApplyInputSettings;
+
+typedef void (*tSetInputBindings)(int* bindings);
+extern tSetInputBindings oSetInputBindings;
+
+typedef int* (*tGetInputBindings)(int* bindings);
+extern tGetInputBindings oGetInputBindings;
+
+typedef void* (*tInitInputBinds)(void* unk);
+extern tInitInputBinds oInitInputBinds;
+
+typedef bool (*tInitInputBinds2)(void* unk1, void* unk2);
+extern tInitInputBinds2 oInitInputBinds2;
+
+typedef void (*tInitInputBinds3)(void* unk);
+extern tInitInputBinds3 oInitInputBinds3;
+
+typedef float (*tGetMouseX)(void* unk);
+extern tGetMouseX oGetMouseX;
+
+typedef float (*tGetRightStickX)(void* unk);
+extern tGetRightStickX oGetRightStickX;
+
 extern void* midRenderGlowFilter;
 extern void* midEndPostEffectScene;
+extern void* pKeybindData;
+extern void* pGameDataMan;

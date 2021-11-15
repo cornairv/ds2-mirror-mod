@@ -8,6 +8,7 @@
 #include <map>
 #include <dinput.h>
 #include <vector>
+#include <detours/detours.h>
 
 KeyWrapper::KeyWrapper(int keyCode) : keyCode(keyCode)
 {
@@ -29,6 +30,9 @@ void InputManager::update()
 		toggleKey.update();
 		if (toggleKey.pressed)
 		{
+			
+			/*
+			swapInputBindings();
 			toggleState = !toggleState;
 			if (config.invertWeaponSwitch)
 			{
@@ -37,6 +41,7 @@ void InputManager::update()
 			if (!keyOptionMenuOpen)
 			{
 			}
+			*/
 		}
 	}
 }
@@ -49,16 +54,58 @@ void InputManager::modifySetXInput(XINPUT_VIBRATION* pVibration)
 	}
 }
 
+void InputManager::modifyGetXInput(XINPUT_STATE* pState)
+{
+	if (toggleState && config.invertDirections)
+	{
+		safeNegate(pState->Gamepad.sThumbLX);
+	}
+}
+
+void InputManager::modifyDirectInput(DWORD cbData, [[maybe_unused]] LPVOID lpvData)
+{
+	LOG << "cbData: " << cbData << LogEndl::INFO;
+}
+
+struct InputBinding
+{
+	int gamepad;
+	int keyboard;
+	int keyboardModifier;
+	int mouse;
+	int mouseModifier;
+};
+
 void InputManager::swapInputBindings()
 {
-	byte* bindingManager = *pBindingManager;
-	byte* bindingsStart = *(byte**)(bindingManager + 0x8);
-	byte* bindingsEnd = *(byte**)(bindingManager + 0x10);
-	for (byte* currentBinding = bindingsStart; currentBinding < bindingsEnd; currentBinding += 0x148)
+	InputBinding* inputBindings = derefOffsets<InputBinding*>(pKeybindData, { }, 0x2d * 0x14);
+	//byte* invertMouseXAxis = derefOffsets<byte*>(pKeybindData, { }, 0x715);
+	//byte* invertGamepadXAxis = derefOffsets<byte*>(pGameDataMan, { 0, 0x58 }, 0x12);
+
+	if (config.invertDirections)
 	{
-		//int inputType = *(int*)(currentBinding + 0x88);
-		long long* bindData = *(long long**)currentBinding;
-		swapInputBindings(bindData);
+		std::swap(inputBindings[3], inputBindings[4]);		// move left/right
+		std::swap(inputBindings[11], inputBindings[12]);	// camera left/right
+		//*invertMouseXAxis ^= 1;
+		//*invertGamepadXAxis ^= 1;
+	}
+	if (config.invertWeaponSwitch)
+	{
+		std::swap(inputBindings[16], inputBindings[17]);	// switch weapons
+	}
+	if (config.invertAttacks)
+	{
+		std::swap(inputBindings[18], inputBindings[20]);	// light attack
+		std::swap(inputBindings[19], inputBindings[21]);	// strong attack
+	}
+}
+
+void InputManager::setSwapInputBindings(bool swap)
+{
+	if (swap != inputSwapped)
+	{
+		swapInputBindings();
+		inputSwapped = swap;
 	}
 }
 
@@ -111,3 +158,75 @@ void* hkMenuKeyOptionDestructor(void* __this, void* unk1, void* unk2, void* unk3
 	InputManager::getInstance().setKeyOptionMenuState(false);
 	return ret;
 }
+
+unsigned long long hkApplyInputSettings(void* __this, unsigned int unk)
+{
+	InputManager::getInstance().swapInputBindings();
+	unsigned long long ret = oApplyInputSettings(__this, unk);
+	InputManager::getInstance().swapInputBindings();
+	return ret;
+}
+
+int* hkGetInputBindings(int* bindings)
+{
+	InputManager::getInstance().setSwapInputBindings(false);
+	int* ret = oGetInputBindings(bindings);
+	InputManager::getInstance().setSwapInputBindings(true);
+	return ret;
+}
+void hkSetInputBindings(int* bindings)
+{
+	InputManager::getInstance().setSwapInputBindings(false);
+	oSetInputBindings(bindings);
+	InputManager::getInstance().setSwapInputBindings(true);
+}
+
+void* hkInitInputBinds(void* unk)
+{
+	void* ret = oInitInputBinds(unk);
+	InputManager::getInstance().swapInputBindings();
+	LOG << "InitInputBinds" << LogEndl::INFO;
+	return ret;
+}
+
+bool hkInitInputBinds2(void* unk1, void* unk2)
+{
+	InputManager::getInstance().setSwapInputBindings(false);
+	LOG << "InitInputBinds2" << LogEndl::INFO;
+	bool ret = oInitInputBinds2(unk1, unk2);
+	return ret;
+}
+
+void hkInitInputBinds3(void* unk)
+{
+	if (config.invertDirections && InputManager::getInstance().toggleState)
+	{
+		InputManager::getInstance().setSwapInputBindings(true);
+	}
+	oInitInputBinds3(unk);
+	if (config.invertDirections && InputManager::getInstance().toggleState)
+	{
+		InputManager::getInstance().setSwapInputBindings(false);
+	}
+}
+
+float hkGetMouseX(void* unk)
+{
+	float ret = oGetMouseX(unk);
+	if (config.invertDirections && InputManager::getInstance().toggleState)
+	{
+		ret *= -1;
+	}
+	return ret;
+}
+
+float hkGetRightStickX(void* unk)
+{
+	float ret = oGetRightStickX(unk);
+	if (config.invertDirections && InputManager::getInstance().toggleState)
+	{
+		ret *= -1;
+	}
+	return ret;
+}
+

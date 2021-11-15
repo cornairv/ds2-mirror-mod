@@ -23,6 +23,10 @@ void setupHooks()
 	CHECK(DetourTransactionBegin());
 	CHECK(DetourUpdateThread(GetCurrentThread()));
 
+	ATTACH_HOOK(Set3DListenerAttributes);
+
+
+
 	// rendering
 	//ATTACH_HOOK(D3D11CreateDevice);
 	//ATTACH_HOOK(RenderGlowFilter);
@@ -38,5 +42,24 @@ void setupHooks()
 	ATTACH_HOOK(Value_SetDisplayInfo);
 	//ATTACH_HOOK(Value_GetDisplayInfo);
 
+	//ATTACH_HOOK(ApplyInputSettings);
+	//ATTACH_HOOK(InitInputBinds);
+	//ATTACH_HOOK(InitInputBinds2);
+	ATTACH_HOOK(InitInputBinds3);
+	//ATTACH_HOOK(GetInputBindings);
+	//ATTACH_HOOK(SetInputBindings);
+
+	CHECK(DetourTransactionCommit());
+}
+
+// hooks that need to be set up after code is decrypted
+void setupLateHooks()
+{
+	CHECK(DetourTransactionBegin());
+	CHECK(DetourUpdateThread(GetCurrentThread()));
+	ATTACH_HOOK(GetMouseX);
+	ATTACH_HOOK(GetRightStickX);
+	ATTACH_HOOK(XInputGetState);
+	ATTACH_HOOK(XInputSetState);
 	CHECK(DetourTransactionCommit());
 }

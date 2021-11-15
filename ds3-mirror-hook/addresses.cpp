@@ -21,7 +21,7 @@ ADDRESS(void*, vtWeaponSwitchIcons, 0x1413abc30);
 
 
 // audio
-ADDRESS(tSet3DListenerAttributes, oSet3DListenerAttributes, 0x141047ad6);
+ADDRESS(tSet3DListenerAttributes, oSet3DListenerAttributes, 0x141a55ee6);
 
 
 // misc
@@ -48,3 +48,15 @@ ADDRESS(tValue_GetDisplayInfo, oValue_GetDisplayInfo, 0x141eedd90);
 
 ADDRESS(void*, midRenderGlowFilter, 0x1401bc3fb);
 ADDRESS(void*, midEndPostEffectScene, 0x1417137b1);
+
+ADDRESS(void*, pKeybindData, 0x7FF3FB059930);//0x144740090);
+ADDRESS(void*, pGameDataMan, 0x144740178);
+ADDRESS(tApplyInputSettings, oApplyInputSettings, 0x14057b370);
+
+ADDRESS(tSetInputBindings, oSetInputBindings, 0x140ab15f0);
+ADDRESS(tGetInputBindings, oGetInputBindings, 0x140aaf010);
+ADDRESS(tInitInputBinds, oInitInputBinds, 0x14057ae80);
+ADDRESS(tInitInputBinds2, oInitInputBinds2, 0x14057b520);
+ADDRESS(tInitInputBinds3, oInitInputBinds3, 0x14057b950);
+ADDRESS(tGetMouseX, oGetMouseX, 0x1407f4dc0);
+ADDRESS(tGetRightStickX, oGetRightStickX, 0x1407f5b50);
