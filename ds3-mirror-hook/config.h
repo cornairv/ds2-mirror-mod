@@ -24,9 +24,9 @@ private:
 
 struct MyConfig
 {
-	bool invertDirections = false;
+	bool invertDirections = true;
 	bool invertAttacks = false;
-	bool invertWeaponSwitch = false;
+	bool invertWeaponSwitch = true;
 
 	int toggleKey = -1;
 

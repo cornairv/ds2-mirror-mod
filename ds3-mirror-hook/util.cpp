@@ -9,23 +9,18 @@ char my_tolower(char ch)
 	return static_cast<char>(tolower(static_cast<unsigned char>(ch)));
 }
 
-// patch CMP instruction to always be true
-void PatchCmp(void* instrAddr)
-{
-	byte instr[] = {0x39, 0xc0};
-	PatchMem(instrAddr, instr, sizeof(instr));
-}
-
 HRESULT PatchMem(void* instrAddr, void* data, size_t size)
 {
 	DWORD OldProtection;
 	if (!VirtualProtect(instrAddr, size, PAGE_READWRITE, &OldProtection))
 	{
+		CHECK(E_FAIL);
 		return E_FAIL;
 	}
 	memcpy(instrAddr, data, size);
 	if (!VirtualProtect(instrAddr, size, OldProtection, &OldProtection))
 	{
+		CHECK(E_FAIL);
 		return E_FAIL;
 	}
 	return S_OK;
@@ -36,11 +31,13 @@ HRESULT PatchNop(void* instrAddr, size_t nops)
 	DWORD OldProtection;
 	if (!VirtualProtect(instrAddr, nops, PAGE_READWRITE, &OldProtection))
 	{
+		CHECK(E_FAIL);
 		return E_FAIL;
 	}
 	memset(instrAddr, 0x90, nops);
 	if (!VirtualProtect(instrAddr, nops, OldProtection, &OldProtection))
 	{
+		CHECK(E_FAIL);
 		return E_FAIL;
 	}
 	return S_OK;
@@ -52,6 +49,7 @@ HRESULT InjectCode(void* hookAddr, void* trampolineCode)
 	byte* trampolineMem = (byte*)DetourAllocateRegionWithinJumpBounds(hookAddr, &trampolineMemSize);
 	if (trampolineMem == nullptr)
 	{
+		CHECK(E_FAIL);
 		return E_FAIL;
 	}
 	byte* trampolineMemEnd = trampolineMem + trampolineMemSize;
@@ -65,6 +63,7 @@ HRESULT InjectCode(void* hookAddr, void* trampolineCode)
 		size_t instrSize = (byte*)DetourCopyInstruction(currentDst, (void**)&trampolineMemEnd, currentSrc, nullptr, nullptr) - currentSrc;
 		if (instrSize == 0)
 		{
+			CHECK(E_FAIL);
 			return E_FAIL;
 		}
 		currentSrc += instrSize;
@@ -81,6 +80,7 @@ HRESULT InjectCode(void* hookAddr, void* trampolineCode)
 		size_t instrSize = (byte*)DetourCopyInstruction(currentDst, (void**)&trampolineMemEnd, currentSrc, nullptr, nullptr) - currentSrc;
 		if (instrSize == 0)
 		{
+			CHECK(E_FAIL);
 			return E_FAIL;
 		}
 		currentSrc += instrSize;
@@ -97,6 +97,7 @@ HRESULT InjectCode(void* hookAddr, void* trampolineCode)
 	*pJmpOffset = (int)jmpOffset64;
 	if (PatchMem(currentDst, jmpInstr, sizeof(jmpInstr)) != S_OK)
 	{
+		CHECK(E_FAIL);
 		return E_FAIL;
 	}
 
@@ -105,12 +106,14 @@ HRESULT InjectCode(void* hookAddr, void* trampolineCode)
 	*pJmpOffset = (int)jmpOffset64;
 	if (PatchMem(hookAddr, jmpInstr, sizeof(jmpInstr)) != S_OK)
 	{
+		CHECK(E_FAIL);
 		return E_FAIL;
 	}
 
 	// replace leftover bytes after jmp with nops
 	if (movedInstrsSize > sizeof(jmpInstr) && PatchNop((char*)hookAddr + sizeof(jmpInstr), movedInstrsSize - sizeof(jmpInstr)) != S_OK)
 	{
+		CHECK(E_FAIL);
 		return E_FAIL;
 	}
 

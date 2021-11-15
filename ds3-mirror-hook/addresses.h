@@ -3,54 +3,10 @@
 #include "pch.h"
 
 // rendering
-typedef void(__thiscall* tSetFloatingRect)(void*, float);
-extern tSetFloatingRect oSetLockonRect;
-extern tSetFloatingRect oSetEnemyRect;
-extern tSetFloatingRect oSetPhantomRect;
+extern void* midRenderGlowFilter;
+extern void* midEndPostEffectScene;
 
-typedef void(*tRenderPostProcess)(void*, void*, void*);
-extern tRenderPostProcess oRenderPostProcess;
-
-typedef void(*tSetUIRect)(void*, float*);
-extern tSetUIRect oSetUIRect;
-extern byte** pFrpgWindow;
-extern void* vtWeaponSwitchIcons;
-extern void* vtEnemyGauge;
-extern void* vtPhantomGauge;
-extern void* vtLockonTarget;
-
-
-// input
-typedef void(*tSetupInputBinds)(void*, void*);
-extern tSetupInputBinds oSetupInputBinds;
-
-typedef void* (*tMenuKeyOptionConstructor)(void*, void*, void*, void*);
-extern tMenuKeyOptionConstructor oMenuKeyOptionConstructor;
-
-typedef void*(*tMenuKeyOptionDestructor)(void*, void*, void*, void*);
-extern tMenuKeyOptionDestructor oMenuKeyOptionDestructor;
-
-extern byte** pBindingManager;
-
-
-// audio
-typedef int(*tSet3DListenerAttributes)(void*, int, void*, void*, void*, void*);
-extern tSet3DListenerAttributes oSet3DListenerAttributes;
-
-
-// misc
-extern byte** pGameData;
-extern long long hashCheckCmps[];
-
-
-
-typedef void* (*tRenderGlowFilter)(void*, void*, void*);
-extern tRenderGlowFilter oRenderGlowFilter;
-
-typedef bool (*tGetMatrix)(void*, float*);
-extern tGetMatrix oGetMatrix;
-extern tGetMatrix oGetMatrixInverse;
-
+// ui
 typedef void* (*tLoader_CreateMovie)(void*, char*, unsigned int, size_t);
 extern tLoader_CreateMovie oLoader_CreateMovie;
 
@@ -69,23 +25,9 @@ extern tValue_SetDisplayInfo oValue_SetDisplayInfo;
 typedef bool (*tValue_GetDisplayInfo)(void* __this, void* pData, double* matrix);
 extern tValue_GetDisplayInfo oValue_GetDisplayInfo;
 
-typedef unsigned long long (*tApplyInputSettings)(void* __this, unsigned int unk);
-extern tApplyInputSettings oApplyInputSettings;
-
-typedef void (*tSetInputBindings)(int* bindings);
-extern tSetInputBindings oSetInputBindings;
-
-typedef int* (*tGetInputBindings)(int* bindings);
-extern tGetInputBindings oGetInputBindings;
-
-typedef void* (*tInitInputBinds)(void* unk);
+// input
+typedef void (*tInitInputBinds)(void* unk);
 extern tInitInputBinds oInitInputBinds;
-
-typedef bool (*tInitInputBinds2)(void* unk1, void* unk2);
-extern tInitInputBinds2 oInitInputBinds2;
-
-typedef void (*tInitInputBinds3)(void* unk);
-extern tInitInputBinds3 oInitInputBinds3;
 
 typedef float (*tGetMouseX)(void* unk);
 extern tGetMouseX oGetMouseX;
@@ -93,7 +35,14 @@ extern tGetMouseX oGetMouseX;
 typedef float (*tGetRightStickX)(void* unk);
 extern tGetRightStickX oGetRightStickX;
 
-extern void* midRenderGlowFilter;
-extern void* midEndPostEffectScene;
 extern void* pKeybindData;
+
+// audio
+typedef int(*tSet3DListenerAttributes)(void*, int, void*, void*, void*, void*);
+extern tSet3DListenerAttributes oSet3DListenerAttributes;
+
+/* unused
+typedef void* (*tRenderGlowFilter)(void*, void*, void*);
+extern tRenderGlowFilter oRenderGlowFilter;
 extern void* pGameDataMan;
+*/

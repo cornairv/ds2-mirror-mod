@@ -190,9 +190,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="addresses.h" />
-    <ClInclude Include="d3d11.h" />
-    <ClInclude Include="d3d11ctxt.h" />
-    <ClInclude Include="d3d11dev.h" />
     <ClInclude Include="fmod.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="hooks.h" />
@@ -206,9 +203,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="addresses.cpp" />
-    <ClCompile Include="d3d11.cpp" />
-    <ClCompile Include="d3d11ctxt.cpp" />
-    <ClCompile Include="d3d11dev.cpp" />
     <ClCompile Include="fmod.cpp" />
     <ClCompile Include="config.cpp" />
     <ClCompile Include="hooks.cpp" />

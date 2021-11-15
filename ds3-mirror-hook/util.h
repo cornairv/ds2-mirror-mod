@@ -3,18 +3,6 @@
 #include <limits>
 #include <initializer_list>
 
-template<typename T>
-void swapBits(T& n, unsigned int bit1, unsigned int bit2)
-{
-	bool b1 = n & bit1;
-	bool b2 = n & bit2;
-	if (b1 != b2)
-	{
-		n ^= bit1;
-		n ^= bit2;
-	}
-}
-
 // avoid integer overflow when negating min value
 template<typename T>
 void safeNegate(T& n)
@@ -45,6 +33,5 @@ T derefOffsets(void* ptr, std::initializer_list<long long> offsets, long long fi
 
 // memory operations
 
-void PatchCmp(void* InstrAddr);
 HRESULT PatchMem(void* instrAddr, void* data, size_t size);
 HRESULT InjectCode(void* hookAddr, void* trampolineCode);

@@ -6,7 +6,6 @@
 #include "config.h"
 #include "logger.h"
 
-tD3D11CreateDevice oD3D11CreateDevice = D3D11CreateDevice;
 tXInputGetState oXInputGetState = XInputGetState;
 tXInputSetState oXInputSetState = XInputSetState;
 tDirectInput8Create oDirectInput8Create;
@@ -45,7 +44,6 @@ bool APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, [[maybe_unused]
         oDirectInput8Create = (tDirectInput8Create)GetProcAddress(dinputDll, "DirectInput8Create");
         CHECK_TRUE(oDirectInput8Create != nullptr);
 
-        LOG << "Starting hook" << LogEndl::ERRO;
         setupHooks();
 
         return true;

@@ -23,31 +23,20 @@ void setupHooks()
 	CHECK(DetourTransactionBegin());
 	CHECK(DetourUpdateThread(GetCurrentThread()));
 
-	ATTACH_HOOK(Set3DListenerAttributes);
-
-
-
 	// rendering
-	//ATTACH_HOOK(D3D11CreateDevice);
-	//ATTACH_HOOK(RenderGlowFilter);
 	CHECK(InjectCode(midRenderGlowFilter, hkRenderGlowFilterTrampoline));
 	CHECK(InjectCode(midEndPostEffectScene, hkEndPostEffectSceneTrampoline));
 
-	//ATTACH_HOOK(GetMatrix);
-	//ATTACH_HOOK(GetMatrixInverse);
+	// UI
 	ATTACH_HOOK(Loader_CreateMovie);
 	ATTACH_HOOK(MovieDef_CreateInstance);
-	//ATTACH_HOOK(MovieRoot_GetVariable);
-	//ATTACH_HOOK(Value_GetMember);
 	ATTACH_HOOK(Value_SetDisplayInfo);
-	//ATTACH_HOOK(Value_GetDisplayInfo);
 
-	//ATTACH_HOOK(ApplyInputSettings);
-	//ATTACH_HOOK(InitInputBinds);
-	//ATTACH_HOOK(InitInputBinds2);
-	ATTACH_HOOK(InitInputBinds3);
-	//ATTACH_HOOK(GetInputBindings);
-	//ATTACH_HOOK(SetInputBindings);
+	// input
+	ATTACH_HOOK(InitInputBinds);
+
+	// audio
+	ATTACH_HOOK(Set3DListenerAttributes);
 
 	CHECK(DetourTransactionCommit());
 }
@@ -57,9 +46,12 @@ void setupLateHooks()
 {
 	CHECK(DetourTransactionBegin());
 	CHECK(DetourUpdateThread(GetCurrentThread()));
+
+	// input
 	ATTACH_HOOK(GetMouseX);
 	ATTACH_HOOK(GetRightStickX);
 	ATTACH_HOOK(XInputGetState);
 	ATTACH_HOOK(XInputSetState);
+
 	CHECK(DetourTransactionCommit());
 }

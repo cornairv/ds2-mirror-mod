@@ -12,6 +12,7 @@ using Microsoft::WRL::ComPtr;
 
 // mirror functions
 
+// usually this is the last render pass before UI is rendered
 void RenderManager::onRenderGlowFilter(ID3D11DeviceContext* ctx)
 {
 	mirrorScreen(ctx);
@@ -21,7 +22,9 @@ void RenderManager::onRenderGlowFilter(ID3D11DeviceContext* ctx)
 // if FPS is low, DS3 skips some render passes so perform mirroring earlier
 void RenderManager::onEndPostEffectScene(ID3D11DeviceContext* ctx)
 {
+	// this function runs once per frame so update input while we're here
 	InputManager::getInstance().update();
+
 	if (!mirror.didRenderGlowFilter)
 	{
 		mirrorScreen(ctx);
@@ -238,38 +241,41 @@ void RenderManager::setInvertWeaponSwitch(bool swap)
 
 void RenderManager::modifyDisplayInfo(void* pData, double*& displayInfo)
 {
-	if (pData == gfx.leftWeapon.pData)
+	if (InputManager::getInstance().toggleState)
 	{
-		if (config.invertWeaponSwitch && InputManager::getInstance().toggleState)
+		if (pData == gfx.leftWeapon.pData)
 		{
-			displayInfo = gfx.leftWeaponDisplayInfo;
-		}
-	}
-	else if (pData == gfx.rightWeapon.pData)
-	{
-		if (config.invertWeaponSwitch && InputManager::getInstance().toggleState)
-		{
-			displayInfo = gfx.rightWeaponDisplayInfo;
-		}
-	}
-	else if (pData == gfx.lockOn.pData)
-	{
-		displayInfo[0] = 1920 - displayInfo[0];
-	}
-	else
-	{
-		for (int i = 0; i < 8; i++)
-		{
-			if (pData == gfx.enemyTag[i].pData)
+			if (config.invertWeaponSwitch)
 			{
-				displayInfo[0] = 1920 - displayInfo[0];
+				displayInfo = gfx.leftWeaponDisplayInfo;
 			}
 		}
-		for (int i = 0; i < 6; i++)
+		else if (pData == gfx.rightWeapon.pData)
 		{
-			if (pData == gfx.remotePCTag[i].pData && displayInfo[0] != 200)
+			if (config.invertWeaponSwitch)
 			{
-				displayInfo[0] = 1920 - displayInfo[0];
+				displayInfo = gfx.rightWeaponDisplayInfo;
+			}
+		}
+		else if (pData == gfx.lockOn.pData)
+		{
+			displayInfo[0] = 1920 - displayInfo[0];
+		}
+		else
+		{
+			for (int i = 0; i < 8; i++)
+			{
+				if (pData == gfx.enemyTag[i].pData)
+				{
+					displayInfo[0] = 1920 - displayInfo[0];
+				}
+			}
+			for (int i = 0; i < 6; i++)
+			{
+				if (pData == gfx.remotePCTag[i].pData && displayInfo[0] != 200)
+				{
+					displayInfo[0] = 1920 - displayInfo[0];
+				}
 			}
 		}
 	}
