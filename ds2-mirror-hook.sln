@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ds3-mirror-hook", "ds3-mirror-hook\ds3-mirror-hook.vcxproj", "{87169278-73F2-4E98-9412-C09C9D1D750D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ds2-mirror-hook", "ds2-mirror-hook\ds2-mirror-hook.vcxproj", "{87169278-73F2-4E98-9412-C09C9D1D750D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FDBC9CFD-595E-4FB5-89EB-2449255D6834}"
 	ProjectSection(SolutionItems) = preProject

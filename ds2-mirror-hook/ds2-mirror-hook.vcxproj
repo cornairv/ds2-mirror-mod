@@ -24,7 +24,7 @@
     <ProjectGuid>{87169278-73f2-4e98-9412-c09c9d1d750d}</ProjectGuid>
     <RootNamespace>ds1mirrorhook</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>ds3-mirror-hook</ProjectName>
+    <ProjectName>ds2-mirror-hook</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
