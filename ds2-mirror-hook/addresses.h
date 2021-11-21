@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include <d3d11.h>
 
 // rendering
 extern void* midRenderGlowFilter;
@@ -46,3 +47,15 @@ typedef void* (*tRenderGlowFilter)(void*, void*, void*);
 extern tRenderGlowFilter oRenderGlowFilter;
 extern void* pGameDataMan;
 */
+
+typedef void* (*tGetShader)(void* unk, wchar_t* name);
+extern tGetShader oGetShader;
+
+typedef bool (*tRenderPass)(void* param1, int param2, int param3, void* param4, int param5);
+extern tRenderPass oRenderPass;
+
+typedef void (*tAddAntiAliasingPass)(void* param1, void* param2, int param3, int param4, void* param5);
+extern tAddAntiAliasingPass oAddAntiAliasingPass;
+
+typedef void (*tDraw)(ID3D11DeviceContext** pCtx, void* unk, UINT VertexCount, UINT StartVertexCount);
+extern tDraw oDraw;

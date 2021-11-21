@@ -6,6 +6,7 @@
 #include <map>
 #include <thread>
 #include <wrl/client.h>
+#include <string>
 
 class RenderManager
 {
@@ -21,12 +22,18 @@ public:
 
 	RenderManager() { }
 
+	void onGetShader(void* shader, std::wstring name);
+
 	// screen mirroring
 	void mirrorScreen(ID3D11DeviceContext* ctx);
 	void initResources(ID3D11Device* d3d11Dev);
 	void initContext(ID3D11DeviceContext* ctx, ID3D11Device* d3d11Dev);
 	void onRenderGlowFilter(ID3D11DeviceContext* ctx);
 	void onEndPostEffectScene(ID3D11DeviceContext* ctx);
+	void onRenderPass(void* drawCtx);
+	bool shouldSkipDraw(ID3D11DeviceContext* ctx);
+	void onDraw(ID3D11DeviceContext* ctx);
+	void setAntiAliasingEnabled(bool* enabled);
 
 	// HUD
 	struct GfxValue
@@ -45,6 +52,10 @@ public:
 	void setInvertWeaponSwitch(bool swap);
 
 private:
+
+	ID3D11PixelShader* antiAliasingShader = nullptr;
+	bool antiAliasingEnabled = false;
+
 	struct gfx_resources
 	{
 		GfxValue hudRoot = {};
@@ -91,3 +102,8 @@ extern "C"
 void* hkLoader_CreateMovie(void* __this, char* filename, unsigned int loadConstants, size_t memoryArena);
 void* hkMovieDef_CreateInstance(void* __this, void* memContext, bool initFirstFrame, void* actionControl, void* queue);
 bool hkValue_SetDisplayInfo(void* __this, void* pData, double* displayInfo);
+
+void* hkGetShader(void* unk, wchar_t* name);
+bool hkRenderPass(void* param1, int param2, int param3, void* param4, int param5);
+void hkAddAntiAliasingPass(void* param1, void* param2, int param3, int param4, void* param5);
+void hkDraw(ID3D11DeviceContext** pCtx, void* unk, UINT VertexCount, UINT StartVertexCount);

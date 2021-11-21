@@ -28,3 +28,8 @@ ADDRESS(tSet3DListenerAttributes, oSet3DListenerAttributes, 0x141a55ee6);
 ADDRESS(tRenderGlowFilter, oRenderGlowFilter, 0x1401bb790);
 ADDRESS(void*, pGameDataMan, 0x144740178);
 */
+
+ADDRESS(tGetShader, oGetShader, 0x140af2420);
+ADDRESS(tRenderPass, oRenderPass, 0x140962b40);
+ADDRESS(tAddAntiAliasingPass, oAddAntiAliasingPass, 0x140b83fe0);
+ADDRESS(tDraw, oDraw, 0x140f1cb10);

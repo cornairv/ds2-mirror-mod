@@ -286,6 +286,115 @@ bool RenderManager::shouldForceInitFirstFrame(void* movieDef)
 	return movieDef && movieDef == gfx.movieDef;
 }
 
+void RenderManager::onGetShader(void* shader, std::wstring name)
+{
+	ID3D11PixelShader* d3dShader = derefOffsets<ID3D11PixelShader*>(shader, { 0x28, 0 });
+	if (name == L"FXAA3.fpo")
+	{
+		antiAliasingShader = d3dShader;
+	}
+}
+
+void RenderManager::onRenderPass(void* drawCtx)
+{
+	if (antiAliasingShader)
+	{
+		ID3D11DeviceContext* ctx = derefOffsets<ID3D11DeviceContext*>(drawCtx, { 0xce0, 0 });
+
+		ComPtr<ID3D11PixelShader> ps;
+		ctx->PSGetShader(&ps, nullptr, nullptr);
+		if (ps.Get() == antiAliasingShader)
+		{
+			ComPtr<ID3D11Buffer> origVBuf;
+			UINT strides, offsets;
+			ctx->IAGetVertexBuffers(0, 1, &origVBuf, &strides, &offsets);
+			ComPtr<ID3D11InputLayout> origInputLayout;
+			ctx->IAGetInputLayout(&origInputLayout);
+			ComPtr<ID3D11VertexShader> origVs;
+			ctx->VSGetShader(&origVs, nullptr, nullptr);
+
+			mirrorScreen(ctx);
+
+			ctx->IASetVertexBuffers(0, 1, origVBuf.GetAddressOf(), &strides, &offsets);
+			ctx->IASetInputLayout(origInputLayout.Get());
+			ctx->VSSetShader(origVs.Get(), nullptr, 0);
+		}
+	}
+}
+
+void RenderManager::setAntiAliasingEnabled(bool* enabled)
+{
+	antiAliasingEnabled = *enabled;
+	if (InputManager::getInstance().toggleState)
+	{
+		*enabled = true;
+	}
+}
+
+bool RenderManager::shouldSkipDraw(ID3D11DeviceContext* ctx)
+{
+	/*
+	if (!antiAliasingEnabled && antiAliasingShader && InputManager::getInstance().toggleState)
+	{
+		ID3D11PixelShader** ps = derefOffsets<ID3D11PixelShader**>(drawCtx, { 0x178 + 0xad8, 0x28 });
+		if (*ps == antiAliasingShader)
+		{
+			if (!mirror.initialized)
+			{
+				ComPtr<ID3D11Device> d3d11Dev;
+				(*ps)->GetDevice(&d3d11Dev);
+				initResources(d3d11Dev.Get());
+			}
+
+			*ps = mirror.pixelShader.Get();
+
+			LOG << __FUNCTION__ << LogEndl::INFO;
+
+			return true;
+		}
+	}
+
+	return false;
+	*/
+
+	if (!antiAliasingEnabled && antiAliasingShader && InputManager::getInstance().toggleState)
+	{
+		ComPtr<ID3D11PixelShader> ps;
+		ctx->PSGetShader(&ps, nullptr, nullptr);
+		if (ps.Get() == antiAliasingShader)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void RenderManager::onDraw(ID3D11DeviceContext* ctx)
+{
+	if (antiAliasingShader && InputManager::getInstance().toggleState)
+	{
+		ComPtr<ID3D11PixelShader> ps;
+		ctx->PSGetShader(&ps, nullptr, nullptr);
+		if (ps.Get() == antiAliasingShader)
+		{
+			ComPtr<ID3D11Buffer> origVBuf;
+			UINT strides, offsets;
+			ctx->IAGetVertexBuffers(0, 1, &origVBuf, &strides, &offsets);
+			ComPtr<ID3D11InputLayout> origInputLayout;
+			ctx->IAGetInputLayout(&origInputLayout);
+			ComPtr<ID3D11VertexShader> origVs;
+			ctx->VSGetShader(&origVs, nullptr, nullptr);
+
+			mirrorScreen(ctx);
+
+			ctx->IASetVertexBuffers(0, 1, origVBuf.GetAddressOf(), &strides, &offsets);
+			ctx->IASetInputLayout(origInputLayout.Get());
+			ctx->VSSetShader(origVs.Get(), nullptr, 0);
+		}
+	}
+}
+
 ////////// Rendering-related hooks //////////
 
 extern "C" void hkRenderGlowFilter(ID3D11DeviceContext* ctx)
@@ -331,4 +440,37 @@ bool hkValue_SetDisplayInfo(void* __this, void* pData, double* displayInfo)
 {
 	RenderManager::getInstance().modifyDisplayInfo(pData, displayInfo);
 	return oValue_SetDisplayInfo(__this, pData, displayInfo);
+}
+
+void* hkGetShader(void* unk, wchar_t* name)
+{
+	void* shader = oGetShader(unk, name);
+	RenderManager::getInstance().onGetShader(shader, name);
+	return shader;
+}
+
+bool hkRenderPass(void* drawCtx, int param2, int param3, void* param4, int param5)
+{
+	bool ret = oRenderPass(drawCtx, param2, param3, param4, param5);
+	if (ret)
+	{
+		RenderManager::getInstance().onRenderPass(drawCtx);
+	}
+	return ret;
+}
+
+void hkAddAntiAliasingPass(void* param1, void* param2, int param3, int param4, void* param5)
+{
+	bool* antiAliasingEnabled = derefOffsets<bool*>(param1, { }, 0x14);
+	RenderManager::getInstance().setAntiAliasingEnabled(antiAliasingEnabled);
+	oAddAntiAliasingPass(param1, param2, param3, param4, param5);
+}
+
+void hkDraw(ID3D11DeviceContext** pCtx, void* unk, UINT VertexCount, UINT StartVertexCount)
+{
+	if (!RenderManager::getInstance().shouldSkipDraw(*pCtx))
+	{
+		oDraw(pCtx, unk, VertexCount, StartVertexCount);
+	}
+	RenderManager::getInstance().onDraw(*pCtx);
 }
